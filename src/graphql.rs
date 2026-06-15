@@ -289,6 +289,65 @@ impl UnraidClient {
             .await
     }
 
+    pub async fn me(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::MeQuery::build(())).await
+    }
+
+    pub async fn owner(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::OwnerQuery::build(()))
+            .await
+    }
+
+    pub async fn servers(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ServersQuery::build(()))
+            .await
+    }
+
+    pub async fn is_fresh_install(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::IsFreshInstallQuery::build(()))
+            .await
+    }
+
+    pub async fn public_theme(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::PublicThemeQuery::build(()))
+            .await
+    }
+
+    pub async fn network_interfaces(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::NetworkInterfacesQuery::build(()))
+            .await
+    }
+
+    pub async fn time_zone_options(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::TimeZoneOptionsQuery::build(()))
+            .await
+    }
+
+    pub async fn assignable_disks(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::AssignableDisksQuery::build(()))
+            .await
+    }
+
+    pub async fn plugin_install_operations(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::PluginInstallOperationsQuery::build(()))
+            .await
+    }
+
+    pub async fn cloud(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::CloudQuery::build(()))
+            .await
+    }
+
     // ── queries ───────────────────────────────────────────────────────────────
 
     pub async fn array(&self) -> Result<Value> {

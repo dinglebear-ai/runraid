@@ -303,6 +303,16 @@ async fn dispatch_action(state: &AppState, action: &str, args: &Value) -> Result
         "display" => svc!(state.service.display()),
         "customization" => svc!(state.service.customization()),
         "internal_boot_context" => svc!(state.service.internal_boot_context()),
+        "me" => svc!(state.service.me()),
+        "owner" => svc!(state.service.owner()),
+        "servers" => svc!(state.service.servers()),
+        "is_fresh_install" => svc!(state.service.is_fresh_install()),
+        "public_theme" => svc!(state.service.public_theme()),
+        "network_interfaces" => svc!(state.service.network_interfaces()),
+        "time_zone_options" => svc!(state.service.time_zone_options()),
+        "assignable_disks" => svc!(state.service.assignable_disks()),
+        "plugin_install_operations" => svc!(state.service.plugin_install_operations()),
+        "cloud" => svc!(state.service.cloud()),
 
         "status" => {
             let snap = state.counters.snapshot();

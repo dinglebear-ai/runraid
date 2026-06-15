@@ -186,6 +186,46 @@ pub(super) const ACTIONS: &[ActionSpec] = &[
         read_only: true,
     },
     ActionSpec {
+        name: "me",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "owner",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "servers",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "is_fresh_install",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "public_theme",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "network_interfaces",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "time_zone_options",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "assignable_disks",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "plugin_install_operations",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "cloud",
+        read_only: true,
+    },
+    ActionSpec {
         name: "status",
         read_only: true,
     },

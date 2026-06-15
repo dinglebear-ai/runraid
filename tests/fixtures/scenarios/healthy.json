@@ -1092,5 +1092,225 @@
         }
       ]
     }
+  },
+  "me": {
+    "me": {
+      "id": "0000-0000-AAAA-0001",
+      "name": "root",
+      "description": "Unraid administrator account",
+      "roles": [
+        "ADMIN"
+      ]
+    }
+  },
+  "owner": {
+    "owner": {
+      "username": "jmagar",
+      "url": "https://unraid.net/u/jmagar",
+      "avatar": "https://avatars.unraid.net/jmagar.png"
+    }
+  },
+  "servers": {
+    "servers": [
+      {
+        "id": "0000-0000-AAAA-0010",
+        "owner": {
+          "id": "0000-0000-AAAA-0001",
+          "username": "jmagar",
+          "url": "https://unraid.net/u/jmagar",
+          "avatar": "https://avatars.unraid.net/jmagar.png"
+        },
+        "guid": "0000-0000-DEADBEEF-0000",
+        "name": "Tower",
+        "comment": "Home media + storage",
+        "status": "ONLINE",
+        "wanip": "203.0.113.7",
+        "lanip": "192.168.1.10",
+        "localurl": "http://tower.local",
+        "remoteurl": "https://example.unraid.net"
+      }
+    ]
+  },
+  "is_fresh_install": {
+    "isFreshInstall": false
+  },
+  "public_theme": {
+    "publicTheme": {
+      "name": "white",
+      "showBannerImage": true,
+      "showBannerGradient": true,
+      "showHeaderDescription": true,
+      "headerBackgroundColor": "#1c1b1b",
+      "headerPrimaryTextColor": "#f2f2f2",
+      "headerSecondaryTextColor": "#a7bcc9"
+    }
+  },
+  "network_interfaces": {
+    "networkInterfaces": [
+      {
+        "id": "0000-0000-NIC0-0001",
+        "name": "eth0",
+        "description": "Onboard Ethernet",
+        "macAddress": "de:ad:be:ef:00:01",
+        "mtu": 1500,
+        "speed": 1000,
+        "duplex": "full",
+        "internal": false,
+        "virtual": false,
+        "operstate": "up",
+        "type": "wired",
+        "vlanId": null,
+        "status": "up",
+        "protocol": "static",
+        "ipAddress": "192.168.1.10",
+        "netmask": "255.255.255.0",
+        "gateway": "192.168.1.1",
+        "useDhcp": false,
+        "ipv6Address": "fe80::dead:beef:1",
+        "ipv6Netmask": "64",
+        "ipv6Gateway": null,
+        "useDhcp6": true
+      },
+      {
+        "id": "0000-0000-NIC0-0002",
+        "name": "br0",
+        "description": "Docker bridge",
+        "macAddress": "de:ad:be:ef:00:02",
+        "mtu": 1500,
+        "speed": null,
+        "duplex": null,
+        "internal": true,
+        "virtual": true,
+        "operstate": "up",
+        "type": "bridge",
+        "vlanId": null,
+        "status": "up",
+        "protocol": "static",
+        "ipAddress": "192.168.1.10",
+        "netmask": "255.255.255.0",
+        "gateway": null,
+        "useDhcp": false,
+        "ipv6Address": null,
+        "ipv6Netmask": null,
+        "ipv6Gateway": null,
+        "useDhcp6": false
+      }
+    ]
+  },
+  "time_zone_options": {
+    "timeZoneOptions": [
+      {
+        "value": "America/New_York",
+        "label": "(GMT-05:00) America/New_York"
+      },
+      {
+        "value": "America/Chicago",
+        "label": "(GMT-06:00) America/Chicago"
+      },
+      {
+        "value": "Europe/London",
+        "label": "(GMT+00:00) Europe/London"
+      },
+      {
+        "value": "UTC",
+        "label": "(GMT+00:00) UTC"
+      }
+    ]
+  },
+  "assignable_disks": {
+    "assignableDisks": [
+      {
+        "id": "0000-0000-DISK-0001",
+        "device": "/dev/sde",
+        "type": "HDD",
+        "name": "WDC_WD80EFAX",
+        "vendor": "Western Digital",
+        "size": 8001563222016,
+        "serialNum": "VAGH9012",
+        "interfaceType": "SATA",
+        "smartStatus": "OK",
+        "temperature": 31,
+        "isSpinning": true,
+        "partitions": [
+          {
+            "name": "sde1",
+            "fsType": "XFS",
+            "size": 8001561124864
+          }
+        ]
+      },
+      {
+        "id": "0000-0000-DISK-0002",
+        "device": "/dev/nvme1n1",
+        "type": "SSD",
+        "name": "Samsung_SSD_980_500GB",
+        "vendor": "Samsung",
+        "size": 500107862016,
+        "serialNum": "S5GXNX0T654321",
+        "interfaceType": "PCIE",
+        "smartStatus": "OK",
+        "temperature": 36,
+        "isSpinning": false,
+        "partitions": []
+      }
+    ]
+  },
+  "plugin_install_operations": {
+    "pluginInstallOperations": [
+      {
+        "id": "op-1a2b3c",
+        "url": "https://raw.githubusercontent.com/example/plugin/master/plugin.plg",
+        "name": "community.applications",
+        "status": "SUCCEEDED",
+        "createdAt": "2026-06-15T17:50:00.000Z",
+        "updatedAt": "2026-06-15T17:51:10.000Z",
+        "finishedAt": "2026-06-15T17:51:10.000Z",
+        "output": [
+          "Downloading plugin.plg",
+          "Verifying signature",
+          "Installation complete"
+        ]
+      },
+      {
+        "id": "op-4d5e6f",
+        "url": "https://raw.githubusercontent.com/example/other/master/other.plg",
+        "name": null,
+        "status": "RUNNING",
+        "createdAt": "2026-06-15T18:00:00.000Z",
+        "updatedAt": "2026-06-15T18:00:05.000Z",
+        "finishedAt": null,
+        "output": [
+          "Downloading other.plg"
+        ]
+      }
+    ]
+  },
+  "cloud": {
+    "cloud": {
+      "error": null,
+      "apiKey": {
+        "valid": true,
+        "error": null
+      },
+      "relay": {
+        "status": "connected",
+        "timeout": null,
+        "error": null
+      },
+      "minigraphql": {
+        "status": "CONNECTED",
+        "timeout": null,
+        "error": null
+      },
+      "cloud": {
+        "status": "ok",
+        "ip": "203.0.113.7",
+        "error": null
+      },
+      "allowedOrigins": [
+        "https://connect.myunraid.net",
+        "https://tower.local"
+      ]
+    }
   }
 }

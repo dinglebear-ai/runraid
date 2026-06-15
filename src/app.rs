@@ -185,6 +185,46 @@ impl UnraidService {
         self.client.internal_boot_context().await
     }
 
+    pub async fn me(&self) -> Result<Value> {
+        self.client.me().await
+    }
+
+    pub async fn owner(&self) -> Result<Value> {
+        self.client.owner().await
+    }
+
+    pub async fn servers(&self) -> Result<Value> {
+        self.client.servers().await
+    }
+
+    pub async fn is_fresh_install(&self) -> Result<Value> {
+        self.client.is_fresh_install().await
+    }
+
+    pub async fn public_theme(&self) -> Result<Value> {
+        self.client.public_theme().await
+    }
+
+    pub async fn network_interfaces(&self) -> Result<Value> {
+        self.client.network_interfaces().await
+    }
+
+    pub async fn time_zone_options(&self) -> Result<Value> {
+        self.client.time_zone_options().await
+    }
+
+    pub async fn assignable_disks(&self) -> Result<Value> {
+        self.client.assignable_disks().await
+    }
+
+    pub async fn plugin_install_operations(&self) -> Result<Value> {
+        self.client.plugin_install_operations().await
+    }
+
+    pub async fn cloud(&self) -> Result<Value> {
+        self.client.cloud().await
+    }
+
     pub async fn rclone(&self) -> Result<Value> {
         self.client.rclone().await
     }

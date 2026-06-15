@@ -77,6 +77,21 @@ pub async fn run(service: &UnraidService, cmd: CliCommand, json: bool) -> Result
             "internal_boot_context",
             service.internal_boot_context().await?,
         ),
+        CliCommand::Me => ("me", service.me().await?),
+        CliCommand::Owner => ("owner", service.owner().await?),
+        CliCommand::Servers => ("servers", service.servers().await?),
+        CliCommand::IsFreshInstall => ("is_fresh_install", service.is_fresh_install().await?),
+        CliCommand::PublicTheme => ("public_theme", service.public_theme().await?),
+        CliCommand::NetworkInterfaces => {
+            ("network_interfaces", service.network_interfaces().await?)
+        }
+        CliCommand::TimeZoneOptions => ("time_zone_options", service.time_zone_options().await?),
+        CliCommand::AssignableDisks => ("assignable_disks", service.assignable_disks().await?),
+        CliCommand::PluginInstallOperations => (
+            "plugin_install_operations",
+            service.plugin_install_operations().await?,
+        ),
+        CliCommand::Cloud => ("cloud", service.cloud().await?),
         // Doctor and setup are intercepted in main.rs before reaching dispatch.
         CliCommand::Doctor | CliCommand::Setup(_) => {
             unreachable!("doctor/setup are handled before service construction")

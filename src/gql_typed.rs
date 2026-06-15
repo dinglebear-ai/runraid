@@ -558,6 +558,254 @@ pub enum ThemeName {
     White,
 }
 
+// ── misc: me / owner / servers / fresh-install / theme / nics / tz / disks / …
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct MeQuery {
+    pub me: UserAccount,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserAccount {
+    pub id: PrefixedID,
+    pub name: String,
+    pub description: String,
+    pub roles: Vec<Role>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct OwnerQuery {
+    pub owner: Owner,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Owner {
+    pub username: String,
+    pub url: String,
+    pub avatar: String,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct ServersQuery {
+    pub servers: Vec<Server>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Server {
+    pub id: PrefixedID,
+    pub owner: ProfileModel,
+    pub guid: String,
+    pub name: String,
+    pub comment: Option<String>,
+    pub status: ServerStatus,
+    pub wanip: String,
+    pub lanip: String,
+    pub localurl: String,
+    pub remoteurl: String,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileModel {
+    pub id: PrefixedID,
+    pub username: String,
+    pub url: String,
+    pub avatar: String,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct IsFreshInstallQuery {
+    pub is_fresh_install: bool,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct PublicThemeQuery {
+    pub public_theme: Theme,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct Theme {
+    pub name: ThemeName,
+    pub show_banner_image: bool,
+    pub show_banner_gradient: bool,
+    pub show_header_description: bool,
+    pub header_background_color: Option<String>,
+    pub header_primary_text_color: Option<String>,
+    pub header_secondary_text_color: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkInterfacesQuery {
+    pub network_interfaces: Vec<InfoNetworkInterface>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct InfoNetworkInterface {
+    pub id: PrefixedID,
+    pub name: String,
+    pub description: Option<String>,
+    pub mac_address: Option<String>,
+    pub mtu: Option<i32>,
+    pub speed: Option<i32>,
+    pub duplex: Option<String>,
+    pub internal: Option<bool>,
+    #[cynic(rename = "virtual")]
+    pub r#virtual: Option<bool>,
+    pub operstate: Option<String>,
+    #[cynic(rename = "type")]
+    pub r#type: Option<String>,
+    pub vlan_id: Option<i32>,
+    pub status: Option<String>,
+    pub protocol: Option<String>,
+    pub ip_address: Option<String>,
+    pub netmask: Option<String>,
+    pub gateway: Option<String>,
+    pub use_dhcp: Option<bool>,
+    pub ipv6_address: Option<String>,
+    pub ipv6_netmask: Option<String>,
+    pub ipv6_gateway: Option<String>,
+    pub use_dhcp6: Option<bool>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct TimeZoneOptionsQuery {
+    pub time_zone_options: Vec<TimeZoneOption>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TimeZoneOption {
+    pub value: String,
+    pub label: String,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct AssignableDisksQuery {
+    pub assignable_disks: Vec<AssignableDisk>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Disk", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct AssignableDisk {
+    pub id: PrefixedID,
+    pub device: String,
+    #[cynic(rename = "type")]
+    pub r#type: String,
+    pub name: String,
+    pub vendor: String,
+    pub size: f64,
+    pub serial_num: String,
+    pub interface_type: DiskInterfaceType,
+    pub smart_status: DiskSmartStatus,
+    pub temperature: Option<f64>,
+    pub is_spinning: bool,
+    pub partitions: Vec<AssignableDiskPartition>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "DiskPartition", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct AssignableDiskPartition {
+    pub name: String,
+    pub fs_type: DiskFsType,
+    pub size: f64,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct PluginInstallOperationsQuery {
+    pub plugin_install_operations: Vec<PluginInstallOperation>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct PluginInstallOperation {
+    pub id: cynic::Id,
+    pub url: String,
+    pub name: Option<String>,
+    pub status: PluginInstallStatus,
+    pub created_at: DateTime,
+    pub updated_at: Option<DateTime>,
+    pub finished_at: Option<DateTime>,
+    pub output: Vec<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct CloudQuery {
+    pub cloud: Cloud,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct Cloud {
+    pub error: Option<String>,
+    pub api_key: ApiKeyResponse,
+    pub relay: Option<RelayResponse>,
+    pub minigraphql: MinigraphqlResponse,
+    pub cloud: CloudResponse,
+    pub allowed_origins: Vec<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyResponse {
+    pub valid: bool,
+    pub error: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelayResponse {
+    pub status: String,
+    pub timeout: Option<String>,
+    pub error: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MinigraphqlResponse {
+    pub status: MinigraphStatus,
+    pub timeout: Option<i32>,
+    pub error: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CloudResponse {
+    pub status: String,
+    pub ip: Option<String>,
+    pub error: Option<String>,
+}
+
 // ── enums (cynic checks them vs the SDL; serde does the JSON round-trip) ──────
 
 macro_rules! gql_enum {
@@ -658,4 +906,40 @@ gql_enum!(OnboardingStatus {
 gql_enum!(Temperature {
     Celsius,
     Fahrenheit
+});
+
+// Misc-batch enums (Role + ThemeName already defined above; not redefined).
+gql_enum!(ServerStatus {
+    Online,
+    Offline,
+    NeverConnected
+});
+gql_enum!(DiskInterfaceType {
+    Sas,
+    Sata,
+    Usb,
+    Pcie,
+    Unknown
+});
+gql_enum!(DiskSmartStatus { Ok, Unknown });
+gql_enum!(DiskFsType {
+    Xfs,
+    Btrfs,
+    Vfat,
+    Zfs,
+    Ext4,
+    Ntfs
+});
+gql_enum!(PluginInstallStatus {
+    Failed,
+    Queued,
+    Running,
+    Succeeded
+});
+gql_enum!(MinigraphStatus {
+    PreInit,
+    Connecting,
+    Connected,
+    PingFailure,
+    ErrorRetrying
 });
