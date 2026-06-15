@@ -28,7 +28,7 @@ use unraid_mcp::mock::{Scenario, SCENARIOS};
 use unraid_mcp::testing::{execute_tool, state_with_upstream};
 use wiremock::{Mock, MockServer, Request, Respond, ResponseTemplate};
 
-const SCHEMA_SDL: &str = include_str!("fixtures/unraid-schema.graphql");
+const SCHEMA_SDL: &str = include_str!("../schema/unraid-schema.graphql");
 
 /// Every action and the args it needs (mirrors the read-only surface).
 fn action_calls() -> Vec<(&'static str, Value)> {

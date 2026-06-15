@@ -69,6 +69,15 @@ impl UnraidClient {
     /// Same as [`query`], but sends GraphQL `variables` alongside the query so
     /// caller-controlled values never have to be interpolated into the query text.
     async fn query_with_vars(&self, gql: &str, variables: Value) -> Result<Value> {
+        self.send_graphql(json!({ "query": gql, "variables": variables }))
+            .await
+    }
+
+    /// POST an already-assembled GraphQL HTTP body (`{query, variables, …}`),
+    /// returning the `data` object. Shared by the string-query path and the typed
+    /// (cynic) path so both get identical auth headers, timeout, and the
+    /// category-level error mapping that never leaks raw upstream bodies.
+    async fn send_graphql(&self, body: Value) -> Result<Value> {
         let span = tracing::info_span!("graphql.query", url = %self.url);
         let _guard = span.enter();
 
@@ -77,7 +86,7 @@ impl UnraidClient {
             .post(&self.url)
             .header("x-api-key", &self.api_key)
             .header("Content-Type", "application/json")
-            .json(&json!({ "query": gql, "variables": variables }))
+            .json(&body)
             .timeout(Duration::from_secs(30))
             .send()
             .await
@@ -144,6 +153,36 @@ impl UnraidClient {
     /// Expose the HTTP client and URL for the health probe.
     pub fn raw_client(&self) -> (&Client, &str, &str) {
         (&self.client, &self.url, &self.api_key)
+    }
+
+    /// Run a typed cynic operation over the existing transport: serialise the
+    /// operation to the GraphQL HTTP body, send it, then deserialise the `data`
+    /// back through the cynic type and re-emit it as `Value` (so dispatch /
+    /// formatters / MCP are unchanged). cynic checks the query against the SDL at
+    /// compile time; this validates the *response* round-trips through that type.
+    async fn run_typed<T, V>(&self, op: cynic::Operation<T, V>) -> Result<Value>
+    where
+        T: serde::Serialize + serde::de::DeserializeOwned + 'static,
+        V: serde::Serialize,
+    {
+        let data = self.send_graphql(serde_json::to_value(&op)?).await?;
+        let typed: T = serde_json::from_value(data).map_err(|e| {
+            tracing::error!(error = %e, "upstream response did not match the typed schema");
+            UpstreamError::Other("upstream response shape did not match the schema".to_string())
+        })?;
+        Ok(serde_json::to_value(typed)?)
+    }
+
+    /// Typed-client spike: `flash` via cynic instead of a hand-written string.
+    pub async fn flash_typed(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::FlashQuery::build(())).await
+    }
+
+    /// Typed-client spike: `array` via cynic (nesting / lists / BigInt / enums).
+    pub async fn array_typed(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ArrayQuery::build(())).await
     }
 
     // ── queries ───────────────────────────────────────────────────────────────

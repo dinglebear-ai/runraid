@@ -1,6 +1,9 @@
 pub mod app;
 pub mod config;
 pub mod graphql;
+
+/// Typed GraphQL operations (cynic) — spike for compile-time query checking.
+mod gql_typed;
 pub mod logging;
 pub mod mcp;
 
