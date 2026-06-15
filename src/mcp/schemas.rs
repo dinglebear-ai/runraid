@@ -146,6 +146,26 @@ pub(super) const ACTIONS: &[ActionSpec] = &[
         read_only: true,
     },
     ActionSpec {
+        name: "api_keys",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "api_key_possible_roles",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "api_key_possible_permissions",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "get_available_auth_actions",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "get_api_key_creation_form_schema",
+        read_only: true,
+    },
+    ActionSpec {
         name: "status",
         read_only: true,
     },

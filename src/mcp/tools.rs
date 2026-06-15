@@ -291,6 +291,13 @@ async fn dispatch_action(state: &AppState, action: &str, args: &Value) -> Result
         "public_oidc_providers" => svc!(state.service.public_oidc_providers()),
         "oidc_providers" => svc!(state.service.oidc_providers()),
         "oidc_configuration" => svc!(state.service.oidc_configuration()),
+        "api_keys" => svc!(state.service.api_keys()),
+        "api_key_possible_roles" => svc!(state.service.api_key_possible_roles()),
+        "api_key_possible_permissions" => svc!(state.service.api_key_possible_permissions()),
+        "get_available_auth_actions" => svc!(state.service.get_available_auth_actions()),
+        "get_api_key_creation_form_schema" => {
+            svc!(state.service.get_api_key_creation_form_schema())
+        }
 
         "status" => {
             let snap = state.counters.snapshot();

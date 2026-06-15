@@ -229,6 +229,36 @@ impl UnraidClient {
             .await
     }
 
+    pub async fn api_keys(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ApiKeysQuery::build(()))
+            .await
+    }
+
+    pub async fn api_key_possible_roles(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ApiKeyPossibleRolesQuery::build(()))
+            .await
+    }
+
+    pub async fn api_key_possible_permissions(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ApiKeyPossiblePermissionsQuery::build(()))
+            .await
+    }
+
+    pub async fn get_available_auth_actions(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::AvailableAuthActionsQuery::build(()))
+            .await
+    }
+
+    pub async fn get_api_key_creation_form_schema(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ApiKeyCreationFormSchemaQuery::build(()))
+            .await
+    }
+
     // ── queries ───────────────────────────────────────────────────────────────
 
     pub async fn array(&self) -> Result<Value> {

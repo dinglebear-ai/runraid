@@ -40,6 +40,11 @@ pub enum CliCommand {
     PublicOidcProviders,
     OidcProviders,
     OidcConfiguration,
+    ApiKeys,
+    ApiKeyPossibleRoles,
+    ApiKeyPossiblePermissions,
+    GetAvailableAuthActions,
+    GetApiKeyCreationFormSchema,
     Doctor,
     Setup(SetupCommand),
 }

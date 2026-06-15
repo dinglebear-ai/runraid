@@ -145,6 +145,26 @@ impl UnraidService {
         self.client.oidc_configuration().await
     }
 
+    pub async fn api_keys(&self) -> Result<Value> {
+        self.client.api_keys().await
+    }
+
+    pub async fn api_key_possible_roles(&self) -> Result<Value> {
+        self.client.api_key_possible_roles().await
+    }
+
+    pub async fn api_key_possible_permissions(&self) -> Result<Value> {
+        self.client.api_key_possible_permissions().await
+    }
+
+    pub async fn get_available_auth_actions(&self) -> Result<Value> {
+        self.client.get_available_auth_actions().await
+    }
+
+    pub async fn get_api_key_creation_form_schema(&self) -> Result<Value> {
+        self.client.get_api_key_creation_form_schema().await
+    }
+
     pub async fn rclone(&self) -> Result<Value> {
         self.client.rclone().await
     }

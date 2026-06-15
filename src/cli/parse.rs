@@ -53,6 +53,15 @@ impl CliCommand {
             ["public-oidc-providers"] => Self::PublicOidcProviders,
             ["oidc-providers"] => Self::OidcProviders,
             ["oidc-configuration"] | ["oidc-config"] => Self::OidcConfiguration,
+            ["api-keys"] => Self::ApiKeys,
+            ["api-key-possible-roles"] | ["possible-roles"] => Self::ApiKeyPossibleRoles,
+            ["api-key-possible-permissions"] | ["possible-permissions"] => {
+                Self::ApiKeyPossiblePermissions
+            }
+            ["get-available-auth-actions"] | ["auth-actions"] => Self::GetAvailableAuthActions,
+            ["get-api-key-creation-form-schema"] | ["api-key-form-schema"] => {
+                Self::GetApiKeyCreationFormSchema
+            }
             ["doctor"] => Self::Doctor,
             ["setup", "check"] => Self::Setup(SetupCommand::Check),
             ["setup", "repair"] => Self::Setup(SetupCommand::Repair),

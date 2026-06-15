@@ -52,6 +52,23 @@ pub async fn run(service: &UnraidService, cmd: CliCommand, json: bool) -> Result
         CliCommand::OidcConfiguration => {
             ("oidc_configuration", service.oidc_configuration().await?)
         }
+        CliCommand::ApiKeys => ("api_keys", service.api_keys().await?),
+        CliCommand::ApiKeyPossibleRoles => (
+            "api_key_possible_roles",
+            service.api_key_possible_roles().await?,
+        ),
+        CliCommand::ApiKeyPossiblePermissions => (
+            "api_key_possible_permissions",
+            service.api_key_possible_permissions().await?,
+        ),
+        CliCommand::GetAvailableAuthActions => (
+            "get_available_auth_actions",
+            service.get_available_auth_actions().await?,
+        ),
+        CliCommand::GetApiKeyCreationFormSchema => (
+            "get_api_key_creation_form_schema",
+            service.get_api_key_creation_form_schema().await?,
+        ),
         // Doctor and setup are intercepted in main.rs before reaching dispatch.
         CliCommand::Doctor | CliCommand::Setup(_) => {
             unreachable!("doctor/setup are handled before service construction")

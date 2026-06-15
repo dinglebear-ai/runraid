@@ -797,5 +797,177 @@
   },
   "is_sso_enabled": {
     "isSSOEnabled": true
+  },
+  "api_keys": {
+    "apiKeys": [
+      {
+        "id": "abc123:key-001",
+        "key": "unraid_ak_4f9c2e1b7a6d8390",
+        "name": "homelab-readonly",
+        "description": "Read-only key for monitoring dashboards",
+        "roles": [
+          "VIEWER"
+        ],
+        "createdAt": "2026-02-14T09:21:00.000Z",
+        "permissions": [
+          {
+            "resource": "ARRAY",
+            "actions": [
+              "READ_ANY"
+            ]
+          },
+          {
+            "resource": "DISK",
+            "actions": [
+              "READ_ANY"
+            ]
+          },
+          {
+            "resource": "DOCKER",
+            "actions": [
+              "READ_ANY"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "abc123:key-002",
+        "key": "unraid_ak_91d3c0fe5b27a4e8",
+        "name": "automation-admin",
+        "description": null,
+        "roles": [
+          "ADMIN"
+        ],
+        "createdAt": "2026-05-30T17:04:12.000Z",
+        "permissions": [
+          {
+            "resource": "API_KEY",
+            "actions": [
+              "CREATE_ANY",
+              "READ_ANY",
+              "UPDATE_ANY",
+              "DELETE_ANY"
+            ]
+          },
+          {
+            "resource": "DOCKER",
+            "actions": [
+              "READ_ANY",
+              "UPDATE_ANY"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "api_key_possible_roles": {
+    "apiKeyPossibleRoles": [
+      "ADMIN",
+      "CONNECT",
+      "GUEST",
+      "VIEWER"
+    ]
+  },
+  "api_key_possible_permissions": {
+    "apiKeyPossiblePermissions": [
+      {
+        "resource": "ARRAY",
+        "actions": [
+          "CREATE_ANY",
+          "READ_ANY",
+          "UPDATE_ANY",
+          "DELETE_ANY"
+        ]
+      },
+      {
+        "resource": "DOCKER",
+        "actions": [
+          "READ_ANY",
+          "UPDATE_ANY"
+        ]
+      },
+      {
+        "resource": "API_KEY",
+        "actions": [
+          "CREATE_ANY",
+          "READ_ANY",
+          "UPDATE_ANY",
+          "DELETE_ANY"
+        ]
+      },
+      {
+        "resource": "CONNECT__REMOTE_ACCESS",
+        "actions": [
+          "READ_OWN",
+          "UPDATE_OWN"
+        ]
+      },
+      {
+        "resource": "NOTIFICATIONS",
+        "actions": [
+          "READ_ANY"
+        ]
+      }
+    ]
+  },
+  "get_available_auth_actions": {
+    "getAvailableAuthActions": [
+      "CREATE_ANY",
+      "CREATE_OWN",
+      "READ_ANY",
+      "READ_OWN",
+      "UPDATE_ANY",
+      "UPDATE_OWN",
+      "DELETE_ANY",
+      "DELETE_OWN"
+    ]
+  },
+  "get_api_key_creation_form_schema": {
+    "getApiKeyCreationFormSchema": {
+      "id": "abc123:apikey-form",
+      "dataSchema": {
+        "type": "object",
+        "required": [
+          "name",
+          "roles"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "roles": {
+            "type": "array",
+            "title": "Roles",
+            "items": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "CONNECT",
+                "GUEST",
+                "VIEWER"
+              ]
+            }
+          }
+        }
+      },
+      "uiSchema": {
+        "name": {
+          "ui:autofocus": true
+        },
+        "description": {
+          "ui:widget": "textarea"
+        }
+      },
+      "values": {
+        "name": "",
+        "description": "",
+        "roles": []
+      }
+    }
   }
 }

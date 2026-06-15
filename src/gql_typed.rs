@@ -30,6 +30,12 @@ pub struct PrefixedID(pub String);
 #[derive(cynic::Scalar, Clone, Debug)]
 pub struct DateTime(pub String);
 
+/// `JSON` scalar — arbitrary JSON; wrap `serde_json::Value` so objects/arrays
+/// round-trip (not just strings).
+#[derive(cynic::Scalar, Clone, Debug)]
+#[cynic(graphql_type = "JSON")]
+pub struct Json(pub serde_json::Value);
+
 // ── flash ────────────────────────────────────────────────────────────────────
 
 #[derive(cynic::QueryFragment, serde::Serialize)]
@@ -275,6 +281,109 @@ pub struct OidcConfiguration {
     pub default_allowed_origins: Option<Vec<String>>,
 }
 
+// ── auth: api keys / roles / permissions / auth actions / form schema ─────────
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeysQuery {
+    pub api_keys: Vec<ApiKey>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKey {
+    pub id: PrefixedID,
+    pub key: String,
+    pub name: String,
+    pub description: Option<String>,
+    pub roles: Vec<Role>,
+    pub created_at: String,
+    pub permissions: Vec<Permission>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+pub struct Permission {
+    pub resource: Resource,
+    pub actions: Vec<AuthAction>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyPossibleRolesQuery {
+    pub api_key_possible_roles: Vec<Role>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyPossiblePermissionsQuery {
+    pub api_key_possible_permissions: Vec<Permission>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct AvailableAuthActionsQuery {
+    pub get_available_auth_actions: Vec<AuthAction>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyCreationFormSchemaQuery {
+    pub get_api_key_creation_form_schema: ApiKeyFormSettings,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyFormSettings {
+    pub id: PrefixedID,
+    pub data_schema: Json,
+    pub ui_schema: Json,
+    pub values: Json,
+}
+
+// `Resource` is hand-written (not via gql_enum!) because one SDL value,
+// `CONNECT__REMOTE_ACCESS`, has a double underscore the macro can't emit.
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[allow(clippy::enum_variant_names)]
+pub enum Resource {
+    ActivationCode,
+    ApiKey,
+    Array,
+    Cloud,
+    Config,
+    Connect,
+    #[cynic(rename = "CONNECT__REMOTE_ACCESS")]
+    ConnectRemoteAccess,
+    Customizations,
+    Dashboard,
+    Disk,
+    Display,
+    Docker,
+    Flash,
+    Info,
+    Logs,
+    Me,
+    Network,
+    Notifications,
+    Online,
+    Os,
+    Owner,
+    Permission,
+    Registration,
+    Servers,
+    Services,
+    Share,
+    Vars,
+    Vms,
+    Welcome,
+}
+
 // ── enums (cynic checks them vs the SDL; serde does the JSON round-trip) ──────
 
 macro_rules! gql_enum {
@@ -346,3 +455,21 @@ gql_enum!(AuthorizationOperator {
     StartsWith,
 });
 gql_enum!(AuthorizationRuleMode { Or, And });
+
+// Auth enums (auth batch).
+gql_enum!(Role {
+    Admin,
+    Connect,
+    Guest,
+    Viewer
+});
+gql_enum!(AuthAction {
+    CreateAny,
+    CreateOwn,
+    ReadAny,
+    ReadOwn,
+    UpdateAny,
+    UpdateOwn,
+    DeleteAny,
+    DeleteOwn,
+});
