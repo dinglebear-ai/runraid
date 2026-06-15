@@ -205,6 +205,30 @@ impl UnraidClient {
             .await
     }
 
+    pub async fn is_sso_enabled(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::IsSsoEnabledQuery::build(()))
+            .await
+    }
+
+    pub async fn public_oidc_providers(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::PublicOidcProvidersQuery::build(()))
+            .await
+    }
+
+    pub async fn oidc_providers(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::OidcProvidersQuery::build(()))
+            .await
+    }
+
+    pub async fn oidc_configuration(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::OidcConfigurationQuery::build(()))
+            .await
+    }
+
     // ── queries ───────────────────────────────────────────────────────────────
 
     pub async fn array(&self) -> Result<Value> {

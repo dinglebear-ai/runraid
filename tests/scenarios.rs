@@ -37,47 +37,7 @@ async fn mock_server_for(scenario: &str) -> MockServer {
     server
 }
 
-/// Every action plus the args it needs. Mirrors the read-only action set.
-fn action_calls() -> Vec<(&'static str, Value)> {
-    vec![
-        ("array", json!({ "action": "array" })),
-        ("disks", json!({ "action": "disks" })),
-        ("docker", json!({ "action": "docker" })),
-        (
-            "docker_logs",
-            json!({ "action": "docker_logs", "id": "a1b2c3d4e5f6" }),
-        ),
-        ("vms", json!({ "action": "vms" })),
-        ("server", json!({ "action": "server" })),
-        ("info", json!({ "action": "info" })),
-        ("shares", json!({ "action": "shares" })),
-        ("notifications", json!({ "action": "notifications" })),
-        ("log_files", json!({ "action": "log_files" })),
-        (
-            "log_file",
-            json!({ "action": "log_file", "path": "/var/log/syslog" }),
-        ),
-        ("services", json!({ "action": "services" })),
-        ("network", json!({ "action": "network" })),
-        ("ups", json!({ "action": "ups" })),
-        ("ups_config", json!({ "action": "ups_config" })),
-        ("metrics", json!({ "action": "metrics" })),
-        ("plugins", json!({ "action": "plugins" })),
-        ("parity_history", json!({ "action": "parity_history" })),
-        ("vars", json!({ "action": "vars" })),
-        ("registration", json!({ "action": "registration" })),
-        ("flash", json!({ "action": "flash" })),
-        ("rclone", json!({ "action": "rclone" })),
-        ("remote_access", json!({ "action": "remote_access" })),
-        ("connect", json!({ "action": "connect" })),
-        ("online", json!({ "action": "online" })),
-        ("system_time", json!({ "action": "system_time" })),
-        (
-            "installed_unraid_plugins",
-            json!({ "action": "installed_unraid_plugins" }),
-        ),
-    ]
-}
+use unraid_mcp::testing::upstream_action_calls as action_calls;
 
 /// Does any string anywhere in the JSON tree contain `needle`?
 fn tree_contains(value: &Value, needle: &str) -> bool {

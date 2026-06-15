@@ -692,5 +692,110 @@
       "dynamix.system.temp",
       "community.applications"
     ]
+  },
+  "public_oidc_providers": {
+    "publicOidcProviders": [
+      {
+        "id": "google",
+        "name": "Google",
+        "buttonText": "Sign in with Google",
+        "buttonIcon": "https://www.google.com/favicon.ico",
+        "buttonVariant": "outline",
+        "buttonStyle": "background: #fff; border-radius: 9999px;"
+      },
+      {
+        "id": "authelia",
+        "name": "Authelia",
+        "buttonText": "Sign in with Authelia",
+        "buttonIcon": null,
+        "buttonVariant": "solid",
+        "buttonStyle": null
+      }
+    ]
+  },
+  "oidc_providers": {
+    "oidcProviders": [
+      {
+        "id": "oidc-provider-google",
+        "name": "Google",
+        "clientId": "1234567890-abcdefg.apps.googleusercontent.com",
+        "issuer": "https://accounts.google.com",
+        "authorizationEndpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+        "tokenEndpoint": "https://oauth2.googleapis.com/token",
+        "jwksUri": "https://www.googleapis.com/oauth2/v3/certs",
+        "scopes": [
+          "openid",
+          "profile",
+          "email"
+        ],
+        "authorizationRules": [
+          {
+            "claim": "email",
+            "operator": "ENDS_WITH",
+            "value": [
+              "@example.com"
+            ]
+          },
+          {
+            "claim": "hd",
+            "operator": "EQUALS",
+            "value": [
+              "example.com"
+            ]
+          }
+        ],
+        "authorizationRuleMode": "OR",
+        "buttonText": "Sign in with Google",
+        "buttonIcon": "https://www.google.com/favicon.ico",
+        "buttonVariant": "outline"
+      }
+    ]
+  },
+  "oidc_configuration": {
+    "oidcConfiguration": {
+      "providers": [
+        {
+          "id": "oidc-provider-google",
+          "name": "Google",
+          "clientId": "1234567890-abcdefg.apps.googleusercontent.com",
+          "issuer": "https://accounts.google.com",
+          "authorizationEndpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+          "tokenEndpoint": "https://oauth2.googleapis.com/token",
+          "jwksUri": "https://www.googleapis.com/oauth2/v3/certs",
+          "scopes": [
+            "openid",
+            "profile",
+            "email"
+          ],
+          "authorizationRules": [
+            {
+              "claim": "email",
+              "operator": "ENDS_WITH",
+              "value": [
+                "@example.com"
+              ]
+            },
+            {
+              "claim": "hd",
+              "operator": "EQUALS",
+              "value": [
+                "example.com"
+              ]
+            }
+          ],
+          "authorizationRuleMode": "OR",
+          "buttonText": "Sign in with Google",
+          "buttonIcon": "https://www.google.com/favicon.ico",
+          "buttonVariant": "outline"
+        }
+      ],
+      "defaultAllowedOrigins": [
+        "https://unraid.example.ts.net",
+        "https://tower.example.com"
+      ]
+    }
+  },
+  "is_sso_enabled": {
+    "isSSOEnabled": true
   }
 }

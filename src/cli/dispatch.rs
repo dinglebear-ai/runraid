@@ -43,6 +43,15 @@ pub async fn run(service: &UnraidService, cmd: CliCommand, json: bool) -> Result
             "installed_unraid_plugins",
             service.installed_unraid_plugins().await?,
         ),
+        CliCommand::IsSsoEnabled => ("is_sso_enabled", service.is_sso_enabled().await?),
+        CliCommand::PublicOidcProviders => (
+            "public_oidc_providers",
+            service.public_oidc_providers().await?,
+        ),
+        CliCommand::OidcProviders => ("oidc_providers", service.oidc_providers().await?),
+        CliCommand::OidcConfiguration => {
+            ("oidc_configuration", service.oidc_configuration().await?)
+        }
         // Doctor and setup are intercepted in main.rs before reaching dispatch.
         CliCommand::Doctor | CliCommand::Setup(_) => {
             unreachable!("doctor/setup are handled before service construction")

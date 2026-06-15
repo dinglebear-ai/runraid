@@ -62,12 +62,22 @@ pub fn classify_query(query: &str) -> Option<std::borrow::Cow<'static, str>> {
     })
 }
 
-/// camelCase GraphQL field name → snake_case action / fixture key.
+/// camelCase GraphQL field name → snake_case action / fixture key, acronym-aware
+/// so `isSSOEnabled` → `is_sso_enabled` (not `is_s_s_o_enabled`). A `_` is
+/// inserted before an uppercase letter that follows a lowercase/digit, or that
+/// ends an acronym run (uppercase followed by a lowercase).
 fn to_snake_case(s: &str) -> String {
+    let chars: Vec<char> = s.chars().collect();
     let mut out = String::with_capacity(s.len() + 4);
-    for (i, c) in s.char_indices() {
+    for (i, &c) in chars.iter().enumerate() {
         if c.is_ascii_uppercase() {
-            if i != 0 {
+            let prev_boundary =
+                i > 0 && (chars[i - 1].is_ascii_lowercase() || chars[i - 1].is_ascii_digit());
+            let acronym_end = i > 0
+                && chars[i - 1].is_ascii_uppercase()
+                && i + 1 < chars.len()
+                && chars[i + 1].is_ascii_lowercase();
+            if prev_boundary || acronym_end {
                 out.push('_');
             }
             out.push(c.to_ascii_lowercase());

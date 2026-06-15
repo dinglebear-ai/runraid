@@ -197,6 +197,84 @@ pub struct ArrayDiskCache {
     pub fs_type: Option<String>,
 }
 
+// ── oidc: public providers / providers / configuration / isSSOEnabled ─────────
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+pub struct IsSsoEnabledQuery {
+    #[cynic(rename = "isSSOEnabled")]
+    #[serde(rename = "isSSOEnabled")]
+    pub is_sso_enabled: bool,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct PublicOidcProvidersQuery {
+    pub public_oidc_providers: Vec<PublicOidcProvider>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct PublicOidcProvider {
+    pub id: cynic::Id, // SDL: ID!
+    pub name: String,
+    pub button_text: Option<String>,
+    pub button_icon: Option<String>,
+    pub button_variant: Option<String>,
+    pub button_style: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct OidcProvidersQuery {
+    pub oidc_providers: Vec<OidcProvider>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct OidcProvider {
+    pub id: PrefixedID,
+    pub name: String,
+    pub client_id: String,
+    pub issuer: Option<String>,
+    pub authorization_endpoint: Option<String>,
+    pub token_endpoint: Option<String>,
+    pub jwks_uri: Option<String>,
+    pub scopes: Vec<String>,
+    pub authorization_rules: Option<Vec<OidcAuthorizationRule>>,
+    pub authorization_rule_mode: Option<AuthorizationRuleMode>,
+    pub button_text: Option<String>,
+    pub button_icon: Option<String>,
+    pub button_variant: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OidcAuthorizationRule {
+    pub claim: String,
+    pub operator: AuthorizationOperator,
+    pub value: Vec<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct OidcConfigurationQuery {
+    pub oidc_configuration: OidcConfiguration,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct OidcConfiguration {
+    pub providers: Vec<OidcProvider>,
+    pub default_allowed_origins: Option<Vec<String>>,
+}
+
 // ── enums (cynic checks them vs the SDL; serde does the JSON round-trip) ──────
 
 macro_rules! gql_enum {
@@ -259,3 +337,12 @@ gql_enum!(ArrayDiskFsColor {
     RedOff,
     GreyOff,
 });
+
+// OIDC authorization-rule enums (oidc batch).
+gql_enum!(AuthorizationOperator {
+    Equals,
+    Contains,
+    EndsWith,
+    StartsWith,
+});
+gql_enum!(AuthorizationRuleMode { Or, And });

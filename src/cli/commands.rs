@@ -36,6 +36,10 @@ pub enum CliCommand {
     Online,
     SystemTime,
     InstalledUnraidPlugins,
+    IsSsoEnabled,
+    PublicOidcProviders,
+    OidcProviders,
+    OidcConfiguration,
     Doctor,
     Setup(SetupCommand),
 }

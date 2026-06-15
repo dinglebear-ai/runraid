@@ -158,6 +158,25 @@ pub mod testing {
             .map_err(|e| e.to_string())
     }
 
+    /// Every upstream data action plus the args it needs, derived from the
+    /// canonical `ACTIONS` slice so new actions are covered by the scenario and
+    /// schema-contract tests automatically. Only the few arg-bearing actions need
+    /// an entry in the override map below.
+    pub fn upstream_action_calls() -> Vec<(&'static str, serde_json::Value)> {
+        use serde_json::json;
+        crate::mcp::data_action_names()
+            .into_iter()
+            .map(|name| {
+                let args = match name {
+                    "docker_logs" => json!({ "action": "docker_logs", "id": "a1b2c3d4e5f6" }),
+                    "log_file" => json!({ "action": "log_file", "path": "/var/log/syslog" }),
+                    _ => json!({ "action": name }),
+                };
+                (name, args)
+            })
+            .collect()
+    }
+
     /// Wrapper over the internal `paginate_array` for unit/integration testing.
     pub fn paginate_array(
         data: serde_json::Value,

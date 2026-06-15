@@ -130,6 +130,22 @@ pub(super) const ACTIONS: &[ActionSpec] = &[
         read_only: true,
     },
     ActionSpec {
+        name: "is_sso_enabled",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "public_oidc_providers",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "oidc_providers",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "oidc_configuration",
+        read_only: true,
+    },
+    ActionSpec {
         name: "status",
         read_only: true,
     },
@@ -143,6 +159,18 @@ pub(super) const ACTIONS: &[ActionSpec] = &[
 /// All valid action names, derived from [`ACTIONS`]. Used for the JSON Schema enum.
 pub(super) static UNRAID_ACTIONS: LazyLock<Vec<&'static str>> =
     LazyLock::new(|| ACTIONS.iter().map(|a| a.name).collect());
+
+/// The upstream-GraphQL-backed data actions (every read-only action except
+/// `status`, which is local observability with no query/fixture). Re-exported so
+/// the scenario + schema-contract integration tests cover every action
+/// automatically — adding an entry to [`ACTIONS`] is enough.
+pub fn data_action_names() -> Vec<&'static str> {
+    ACTIONS
+        .iter()
+        .filter(|a| a.read_only && a.name != "status")
+        .map(|a| a.name)
+        .collect()
+}
 
 pub(super) fn tool_definitions() -> Vec<Value> {
     vec![json!({

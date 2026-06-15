@@ -287,6 +287,10 @@ async fn dispatch_action(state: &AppState, action: &str, args: &Value) -> Result
         "online" => svc!(state.service.online()),
         "system_time" => svc!(state.service.system_time()),
         "installed_unraid_plugins" => svc!(state.service.installed_unraid_plugins()),
+        "is_sso_enabled" => svc!(state.service.is_sso_enabled()),
+        "public_oidc_providers" => svc!(state.service.public_oidc_providers()),
+        "oidc_providers" => svc!(state.service.oidc_providers()),
+        "oidc_configuration" => svc!(state.service.oidc_configuration()),
 
         "status" => {
             let snap = state.counters.snapshot();

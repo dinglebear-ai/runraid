@@ -129,6 +129,22 @@ impl UnraidService {
         self.client.installed_unraid_plugins().await
     }
 
+    pub async fn is_sso_enabled(&self) -> Result<Value> {
+        self.client.is_sso_enabled().await
+    }
+
+    pub async fn public_oidc_providers(&self) -> Result<Value> {
+        self.client.public_oidc_providers().await
+    }
+
+    pub async fn oidc_providers(&self) -> Result<Value> {
+        self.client.oidc_providers().await
+    }
+
+    pub async fn oidc_configuration(&self) -> Result<Value> {
+        self.client.oidc_configuration().await
+    }
+
     pub async fn rclone(&self) -> Result<Value> {
         self.client.rclone().await
     }
