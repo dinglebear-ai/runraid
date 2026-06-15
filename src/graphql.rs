@@ -205,8 +205,9 @@ impl UnraidClient {
         let gql = r#"query($id: PrefixedID!, $tail: Int) {
   docker {
     logs(id: $id, tail: $tail) {
-      logLineUrl
-      lines
+      containerId
+      lines { timestamp message }
+      cursor
     }
   }
 }"#;
@@ -314,7 +315,7 @@ impl UnraidClient {
   upsDevices {
     id name model status
     battery { chargeLevel estimatedRuntime health }
-    power { inputVoltage outputVoltage loadPercent }
+    power { inputVoltage outputVoltage loadPercentage }
   }
 }"#,
         )
