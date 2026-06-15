@@ -70,6 +70,12 @@ fn action_calls() -> Vec<(&'static str, Value)> {
         ("rclone", json!({ "action": "rclone" })),
         ("remote_access", json!({ "action": "remote_access" })),
         ("connect", json!({ "action": "connect" })),
+        ("online", json!({ "action": "online" })),
+        ("system_time", json!({ "action": "system_time" })),
+        (
+            "installed_unraid_plugins",
+            json!({ "action": "installed_unraid_plugins" }),
+        ),
     ]
 }
 

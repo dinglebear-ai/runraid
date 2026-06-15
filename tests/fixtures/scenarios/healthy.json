@@ -671,5 +671,26 @@
         }
       }
     }
+  },
+  "online": {
+    "online": true
+  },
+  "system_time": {
+    "systemTime": {
+      "currentTime": "2026-06-15T18:00:00.000Z",
+      "timeZone": "America/New_York",
+      "useNtp": true,
+      "ntpServers": [
+        "time.cloudflare.com",
+        "pool.ntp.org"
+      ]
+    }
+  },
+  "installed_unraid_plugins": {
+    "installedUnraidPlugins": [
+      "unraid-api",
+      "dynamix.system.temp",
+      "community.applications"
+    ]
   }
 }

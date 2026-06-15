@@ -1,6 +1,6 @@
 //! Schema-as-contract test.
 //!
-//! Validates, against the **vendored Unraid SDL** (`tests/fixtures/unraid-schema.graphql`):
+//! Validates, against the **vendored Unraid SDL** (`schema/unraid-schema.graphql`):
 //!   1. every GraphQL query `graphql.rs` actually sends (captured by driving the
 //!      real dispatch through a recording mock), and
 //!   2. every scenario fixture's leaf values — scalar JSON-type (BigInt=string,
@@ -63,6 +63,12 @@ fn action_calls() -> Vec<(&'static str, Value)> {
         ("rclone", json!({ "action": "rclone" })),
         ("remote_access", json!({ "action": "remote_access" })),
         ("connect", json!({ "action": "connect" })),
+        ("online", json!({ "action": "online" })),
+        ("system_time", json!({ "action": "system_time" })),
+        (
+            "installed_unraid_plugins",
+            json!({ "action": "installed_unraid_plugins" }),
+        ),
     ]
 }
 

@@ -284,6 +284,9 @@ async fn dispatch_action(state: &AppState, action: &str, args: &Value) -> Result
         "rclone" => svc!(state.service.rclone()),
         "remote_access" => svc!(state.service.remote_access()),
         "connect" => svc!(state.service.connect()),
+        "online" => svc!(state.service.online()),
+        "system_time" => svc!(state.service.system_time()),
+        "installed_unraid_plugins" => svc!(state.service.installed_unraid_plugins()),
 
         "status" => {
             let snap = state.counters.snapshot();

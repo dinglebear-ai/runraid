@@ -117,6 +117,18 @@ impl UnraidService {
         self.client.flash().await
     }
 
+    pub async fn online(&self) -> Result<Value> {
+        self.client.online().await
+    }
+
+    pub async fn system_time(&self) -> Result<Value> {
+        self.client.system_time().await
+    }
+
+    pub async fn installed_unraid_plugins(&self) -> Result<Value> {
+        self.client.installed_unraid_plugins().await
+    }
+
     pub async fn rclone(&self) -> Result<Value> {
         self.client.rclone().await
     }

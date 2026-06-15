@@ -176,13 +176,33 @@ impl UnraidClient {
     /// Typed-client spike: `flash` via cynic instead of a hand-written string.
     pub async fn flash_typed(&self) -> Result<Value> {
         use cynic::QueryBuilder;
-        self.run_typed(crate::gql_typed::FlashQuery::build(())).await
+        self.run_typed(crate::gql_typed::FlashQuery::build(()))
+            .await
     }
 
     /// Typed-client spike: `array` via cynic (nesting / lists / BigInt / enums).
     pub async fn array_typed(&self) -> Result<Value> {
         use cynic::QueryBuilder;
-        self.run_typed(crate::gql_typed::ArrayQuery::build(())).await
+        self.run_typed(crate::gql_typed::ArrayQuery::build(()))
+            .await
+    }
+
+    pub async fn online(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::OnlineQuery::build(()))
+            .await
+    }
+
+    pub async fn system_time(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::SystemTimeQuery::build(()))
+            .await
+    }
+
+    pub async fn installed_unraid_plugins(&self) -> Result<Value> {
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::InstalledPluginsQuery::build(()))
+            .await
     }
 
     // ── queries ───────────────────────────────────────────────────────────────

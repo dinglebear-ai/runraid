@@ -118,6 +118,18 @@ pub(super) const ACTIONS: &[ActionSpec] = &[
         read_only: true,
     },
     ActionSpec {
+        name: "online",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "system_time",
+        read_only: true,
+    },
+    ActionSpec {
+        name: "installed_unraid_plugins",
+        read_only: true,
+    },
+    ActionSpec {
         name: "status",
         read_only: true,
     },

@@ -48,6 +48,38 @@ pub struct Flash {
     pub product: String,
 }
 
+// ── online / system_time / installed_unraid_plugins (first new-action batch) ──
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+pub struct OnlineQuery {
+    pub online: bool,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct SystemTimeQuery {
+    pub system_time: SystemTime,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct SystemTime {
+    pub current_time: String,
+    pub time_zone: String,
+    pub use_ntp: bool,
+    pub ntp_servers: Vec<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct InstalledPluginsQuery {
+    pub installed_unraid_plugins: Vec<String>,
+}
+
 // ── array (the stress test: nesting, lists, BigInt, 5 enums) ─────────────────
 //
 // Note: cynic structs map to a *selection*, not a type — so `parities`, `disks`,
@@ -178,14 +210,52 @@ macro_rules! gql_enum {
 }
 
 gql_enum!(ArrayState {
-    Started, Stopped, NewArray, ReconDisk, DisableDisk, SwapDsbl,
-    InvalidExpansion, ParityNotBiggest, TooManyMissingDisks, NewDiskTooSmall, NoDataDisks,
+    Started,
+    Stopped,
+    NewArray,
+    ReconDisk,
+    DisableDisk,
+    SwapDsbl,
+    InvalidExpansion,
+    ParityNotBiggest,
+    TooManyMissingDisks,
+    NewDiskTooSmall,
+    NoDataDisks,
 });
-gql_enum!(ParityCheckStatus { NeverRun, Running, Paused, Completed, Cancelled, Failed });
+gql_enum!(ParityCheckStatus {
+    NeverRun,
+    Running,
+    Paused,
+    Completed,
+    Cancelled,
+    Failed
+});
 gql_enum!(ArrayDiskStatus {
-    DiskNp, DiskOk, DiskNpMissing, DiskInvalid, DiskWrong, DiskDsbl, DiskNpDsbl, DiskDsblNew, DiskNew,
+    DiskNp,
+    DiskOk,
+    DiskNpMissing,
+    DiskInvalid,
+    DiskWrong,
+    DiskDsbl,
+    DiskNpDsbl,
+    DiskDsblNew,
+    DiskNew,
 });
-gql_enum!(ArrayDiskType { Data, Parity, Boot, Flash, Cache });
+gql_enum!(ArrayDiskType {
+    Data,
+    Parity,
+    Boot,
+    Flash,
+    Cache
+});
 gql_enum!(ArrayDiskFsColor {
-    GreenOn, GreenBlink, BlueOn, BlueBlink, YellowOn, YellowBlink, RedOn, RedOff, GreyOff,
+    GreenOn,
+    GreenBlink,
+    BlueOn,
+    BlueBlink,
+    YellowOn,
+    YellowBlink,
+    RedOn,
+    RedOff,
+    GreyOff,
 });

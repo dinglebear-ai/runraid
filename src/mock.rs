@@ -41,43 +41,41 @@ fn raw_overlay(name: &str) -> Option<&'static str> {
 
 /// Map a raw GraphQL query string to the fixture key (the `action` name) that
 /// serves it, by **parsing the query AST** and routing on the operation's root
-/// field name (e.g. `upsDevices` → `ups`). This is robust to whitespace, field
-/// reordering, and comments — unlike substring matching. The only root field
-/// shared by two actions is `docker`, disambiguated by its sub-selection
-/// (`logs` → `docker_logs`, otherwise `docker`).
+/// field name. For almost every action the fixture key is just the snake_case of
+/// the GraphQL root field (`systemTime` → `system_time`), so new actions route
+/// automatically with no edit here. Only the handful that don't follow that rule
+/// are listed explicitly: `docker`'s `logs` sub-selection (→ `docker_logs`) and
+/// the UPS fields whose action names are abbreviated.
 ///
-/// Returns `None` if the query doesn't parse or its root field is unknown — the
-/// server turns that into a GraphQL `errors` response, exactly as a real server
-/// would for an unknown field.
-pub fn classify_query(query: &str) -> Option<&'static str> {
+/// Robust to whitespace, field reordering, and comments — unlike substring
+/// matching. `None` only if the query doesn't parse / has no root field; an
+/// unknown-but-parseable field maps to a key with no fixture, which the server
+/// turns into a GraphQL `errors` response (exactly as a real server would).
+pub fn classify_query(query: &str) -> Option<std::borrow::Cow<'static, str>> {
+    use std::borrow::Cow;
     let (root, subfields) = root_field(query)?;
     Some(match root {
-        "array" => "array",
-        "disks" => "disks",
-        "docker" if subfields.contains(&"logs") => "docker_logs",
-        "docker" => "docker",
-        "vms" => "vms",
-        "server" => "server",
-        "info" => "info",
-        "shares" => "shares",
-        "notifications" => "notifications",
-        "logFiles" => "log_files",
-        "logFile" => "log_file",
-        "services" => "services",
-        "network" => "network",
-        "upsDevices" => "ups",
-        "upsConfiguration" => "ups_config",
-        "metrics" => "metrics",
-        "plugins" => "plugins",
-        "parityHistory" => "parity_history",
-        "vars" => "vars",
-        "registration" => "registration",
-        "flash" => "flash",
-        "rclone" => "rclone",
-        "remoteAccess" => "remote_access",
-        "connect" => "connect",
-        _ => return None,
+        "docker" if subfields.contains(&"logs") => Cow::Borrowed("docker_logs"),
+        "upsDevices" => Cow::Borrowed("ups"),
+        "upsConfiguration" => Cow::Borrowed("ups_config"),
+        other => Cow::Owned(to_snake_case(other)),
     })
+}
+
+/// camelCase GraphQL field name → snake_case action / fixture key.
+fn to_snake_case(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 4);
+    for (i, c) in s.char_indices() {
+        if c.is_ascii_uppercase() {
+            if i != 0 {
+                out.push('_');
+            }
+            out.push(c.to_ascii_lowercase());
+        } else {
+            out.push(c);
+        }
+    }
+    out
 }
 
 /// Parse `query` and return its first operation's root field name together with
@@ -149,7 +147,7 @@ impl Scenario {
     /// (`{"data": …}`), or a GraphQL `errors` body when the query is not
     /// recognised. This is the whole server behaviour in one call.
     pub fn respond(&self, query: &str) -> Value {
-        match classify_query(query).and_then(|key| self.payload(key)) {
+        match classify_query(query).and_then(|key| self.payload(&key)) {
             Some(data) => serde_json::json!({ "data": data }),
             None => serde_json::json!({
                 "errors": [{
@@ -231,42 +229,59 @@ mod tests {
 
     #[test]
     fn classify_routes_overlapping_queries() {
+        let classify = |q| classify_query(q).map(|c| c.into_owned());
         // docker_logs vs docker
         assert_eq!(
-            classify_query("query($id: PrefixedID!, $tail: Int) { docker { logs(id: $id, tail: $tail) { lines } } }"),
+            classify("query($id: PrefixedID!, $tail: Int) { docker { logs(id: $id, tail: $tail) { lines } } }").as_deref(),
             Some("docker_logs")
         );
         assert_eq!(
-            classify_query("query { docker { containers { id names } } }"),
+            classify("query { docker { containers { id names } } }").as_deref(),
             Some("docker")
         );
-        // log_file vs log_files
+        // log_file vs log_files (snake_case of the root field)
         assert_eq!(
-            classify_query("query($path: String!) { logFile(path: $path) { content } }"),
+            classify("query($path: String!) { logFile(path: $path) { content } }").as_deref(),
             Some("log_file")
         );
         assert_eq!(
-            classify_query("query { logFiles { name path } }"),
+            classify("query { logFiles { name path } }").as_deref(),
             Some("log_files")
         );
-        // connect vs remote_access (substring overlap)
+        // connect vs remote_access (substring overlap that substring routing would trip on)
         assert_eq!(
-            classify_query("query { connect { id dynamicRemoteAccess { error } } }"),
+            classify("query { connect { id dynamicRemoteAccess { error } } }").as_deref(),
             Some("connect")
         );
         assert_eq!(
-            classify_query("query { remoteAccess { accessType forwardType port } }"),
+            classify("query { remoteAccess { accessType forwardType port } }").as_deref(),
             Some("remote_access")
         );
         // array vs disks (both mention nested `disks {`)
         assert_eq!(
-            classify_query("query { array { state parityCheckStatus { status } disks { id } } }"),
+            classify("query { array { state parityCheckStatus { status } disks { id } } }")
+                .as_deref(),
             Some("array")
         );
         assert_eq!(
-            classify_query("query { disks { id smartStatus temperature } }"),
+            classify("query { disks { id smartStatus temperature } }").as_deref(),
             Some("disks")
         );
+        // UPS abbreviations are the explicit exceptions
+        assert_eq!(
+            classify("query { upsDevices { id } }").as_deref(),
+            Some("ups")
+        );
+        assert_eq!(
+            classify("query { upsConfiguration { service } }").as_deref(),
+            Some("ups_config")
+        );
+        // new actions route automatically via snake_case — no edit needed
+        assert_eq!(
+            classify("query { systemTime { currentTime } }").as_deref(),
+            Some("system_time")
+        );
+        assert_eq!(classify("query { online }").as_deref(), Some("online"));
     }
 
     #[test]

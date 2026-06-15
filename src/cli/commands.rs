@@ -33,6 +33,9 @@ pub enum CliCommand {
     Rclone,
     RemoteAccess,
     Connect,
+    Online,
+    SystemTime,
+    InstalledUnraidPlugins,
     Doctor,
     Setup(SetupCommand),
 }
