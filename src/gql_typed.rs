@@ -950,6 +950,90 @@ pub struct PermissionsForRolesQuery {
     pub get_permissions_for_roles: Vec<Permission>,
 }
 
+// ── mutations: notifications (first write batch) ──────────────────────────────
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Notification {
+    pub id: PrefixedID,
+    pub title: String,
+    pub subject: String,
+    pub description: String,
+    pub importance: NotificationImportance,
+    pub link: Option<String>,
+    #[cynic(rename = "type")]
+    pub r#type: NotificationType,
+    pub timestamp: Option<String>,
+    pub formatted_timestamp: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NotificationOverview {
+    pub unread: NotificationCounts,
+    pub archive: NotificationCounts,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+pub struct NotificationCounts {
+    pub info: i32,
+    pub warning: i32,
+    pub alert: i32,
+    pub total: i32,
+}
+
+#[derive(cynic::InputObject, Debug, Clone)]
+pub struct NotificationData {
+    pub title: String,
+    pub subject: String,
+    pub description: String,
+    pub importance: NotificationImportance,
+    pub link: Option<String>,
+}
+
+#[derive(cynic::QueryVariables)]
+pub struct CreateNotificationVars {
+    pub input: NotificationData,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "CreateNotificationVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateNotificationMutation {
+    #[arguments(input: $input)]
+    pub create_notification: Notification,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "PrefixedIdVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ArchiveNotificationMutation {
+    #[arguments(id: $id)]
+    pub archive_notification: Notification,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct RecalculateOverviewMutation {
+    pub recalculate_overview: NotificationOverview,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct DeleteArchivedNotificationsMutation {
+    pub delete_archived_notifications: NotificationOverview,
+}
+
 // ── enums (cynic checks them vs the SDL; serde does the JSON round-trip) ──────
 
 macro_rules! gql_enum {
@@ -1087,3 +1171,11 @@ gql_enum!(MinigraphStatus {
     PingFailure,
     ErrorRetrying
 });
+
+// Notification enums (mutation batch).
+gql_enum!(NotificationImportance {
+    Alert,
+    Info,
+    Warning
+});
+gql_enum!(NotificationType { Unread, Archive });

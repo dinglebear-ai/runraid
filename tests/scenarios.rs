@@ -50,6 +50,21 @@ fn tree_contains(value: &Value, needle: &str) -> bool {
 }
 
 #[tokio::test]
+async fn every_mutation_dispatches() {
+    // Mutations are write-scoped but execute_tool runs under LoopbackDev (no auth),
+    // so this exercises dispatch + the typed round-trip for the write surface.
+    let server = mock_server_for("healthy").await;
+    let state = state_with_upstream(&server.uri());
+    for (action, args) in unraid_mcp::testing::mutation_action_calls() {
+        let result = execute_tool(&state, "unraid", args).await;
+        assert!(
+            result.is_ok(),
+            "mutation `{action}` should dispatch ok, got: {result:?}"
+        );
+    }
+}
+
+#[tokio::test]
 async fn every_action_dispatches_in_every_scenario() {
     for scenario in SCENARIOS {
         let server = mock_server_for(scenario).await;

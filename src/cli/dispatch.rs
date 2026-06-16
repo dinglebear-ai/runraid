@@ -108,6 +108,30 @@ pub async fn run(service: &UnraidService, cmd: CliCommand, json: bool) -> Result
             "get_permissions_for_roles",
             service.get_permissions_for_roles(&roles).await?,
         ),
+        CliCommand::RecalculateOverview => (
+            "recalculate_overview",
+            service.recalculate_overview().await?,
+        ),
+        CliCommand::DeleteArchivedNotifications => (
+            "delete_archived_notifications",
+            service.delete_archived_notifications().await?,
+        ),
+        CliCommand::ArchiveNotification(id) => (
+            "archive_notification",
+            service.archive_notification(&id).await?,
+        ),
+        CliCommand::CreateNotification {
+            title,
+            subject,
+            description,
+            importance,
+            link,
+        } => (
+            "create_notification",
+            service
+                .create_notification(&title, &subject, &description, &importance, link.as_deref())
+                .await?,
+        ),
         // Doctor and setup are intercepted in main.rs before reaching dispatch.
         CliCommand::Doctor | CliCommand::Setup(_) => {
             unreachable!("doctor/setup are handled before service construction")

@@ -88,6 +88,18 @@ impl CliCommand {
             ["get-permissions-for-roles", roles @ ..] if !roles.is_empty() => {
                 Self::GetPermissionsForRoles(roles.iter().map(|r| r.to_string()).collect())
             }
+            ["recalculate-overview"] => Self::RecalculateOverview,
+            ["delete-archived-notifications"] => Self::DeleteArchivedNotifications,
+            ["archive-notification", id] => Self::ArchiveNotification(id.to_string()),
+            ["create-notification", title, subject, description, importance, rest @ ..] => {
+                Self::CreateNotification {
+                    title: title.to_string(),
+                    subject: subject.to_string(),
+                    description: description.to_string(),
+                    importance: importance.to_string(),
+                    link: rest.first().map(|s| s.to_string()),
+                }
+            }
             ["doctor"] => Self::Doctor,
             ["setup", "check"] => Self::Setup(SetupCommand::Check),
             ["setup", "repair"] => Self::Setup(SetupCommand::Repair),

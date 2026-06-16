@@ -30,7 +30,14 @@ use wiremock::{Mock, MockServer, Request, Respond, ResponseTemplate};
 
 const SCHEMA_SDL: &str = include_str!("../schema/unraid-schema.graphql");
 
-use unraid_mcp::testing::upstream_action_calls as action_calls;
+use unraid_mcp::testing::{mutation_action_calls, upstream_action_calls};
+
+/// Every query AND mutation, so the contract test validates the whole surface.
+fn action_calls() -> Vec<(&'static str, Value)> {
+    let mut calls = upstream_action_calls();
+    calls.extend(mutation_action_calls());
+    calls
+}
 
 /// Mock that echoes a valid healthy response so dispatch succeeds (we only care
 /// about the *request* it records).

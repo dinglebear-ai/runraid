@@ -1459,5 +1459,63 @@
         ]
       }
     ]
+  },
+  "recalculate_overview": {
+    "recalculateOverview": {
+      "unread": {
+        "info": 1,
+        "warning": 0,
+        "alert": 0,
+        "total": 1
+      },
+      "archive": {
+        "info": 14,
+        "warning": 2,
+        "alert": 0,
+        "total": 16
+      }
+    }
+  },
+  "delete_archived_notifications": {
+    "deleteArchivedNotifications": {
+      "unread": {
+        "info": 1,
+        "warning": 0,
+        "alert": 0,
+        "total": 1
+      },
+      "archive": {
+        "info": 14,
+        "warning": 2,
+        "alert": 0,
+        "total": 16
+      }
+    }
+  },
+  "archive_notification": {
+    "archiveNotification": {
+      "id": "ntf-1",
+      "title": "Test notification",
+      "subject": "Created via API",
+      "description": "A notification created through the MCP write API.",
+      "importance": "INFO",
+      "link": null,
+      "type": "ARCHIVE",
+      "timestamp": "2026-06-15T18:00:00.000Z",
+      "formattedTimestamp": "Jun 15, 2026 18:00"
+    }
+  },
+  "create_notification": {
+    "createNotification": {
+      "id": "ntf-1",
+      "title": "Test notification",
+      "subject": "Created via API",
+      "description": "A notification created through the MCP write API.",
+      "importance": "INFO",
+      "link": null,
+      "type": "UNREAD",
+      "timestamp": "2026-06-15T18:00:00.000Z",
+      "formattedTimestamp": "Jun 15, 2026 18:00"
+    }
   }
 }

@@ -192,6 +192,28 @@ pub mod testing {
             .collect()
     }
 
+    /// Every mutating action plus representative args, derived from `ACTIONS`
+    /// (write-scoped). Covered by the contract + scenario tests alongside reads.
+    pub fn mutation_action_calls() -> Vec<(&'static str, serde_json::Value)> {
+        use serde_json::json;
+        crate::mcp::write_action_names()
+            .into_iter()
+            .map(|name| {
+                let args = match name {
+                    "archive_notification" => {
+                        json!({ "action": "archive_notification", "id": "ntf-1" })
+                    }
+                    "create_notification" => json!({
+                        "action": "create_notification",
+                        "title": "T", "subject": "S", "description": "D", "importance": "INFO"
+                    }),
+                    _ => json!({ "action": name }),
+                };
+                (name, args)
+            })
+            .collect()
+    }
+
     /// Wrapper over the internal `paginate_array` for unit/integration testing.
     pub fn paginate_array(
         data: serde_json::Value,

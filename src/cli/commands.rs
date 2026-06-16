@@ -67,6 +67,16 @@ pub enum CliCommand {
     PluginInstallOperation(String),
     ValidateOidcSession(String),
     GetPermissionsForRoles(Vec<String>),
+    RecalculateOverview,
+    DeleteArchivedNotifications,
+    ArchiveNotification(String),
+    CreateNotification {
+        title: String,
+        subject: String,
+        description: String,
+        importance: String,
+        link: Option<String>,
+    },
     Doctor,
     Setup(SetupCommand),
 }

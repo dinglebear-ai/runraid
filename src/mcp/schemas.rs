@@ -11,11 +11,20 @@ use serde_json::{json, Value};
 pub(super) struct ActionSpec {
     /// The action name as passed in the `action` argument.
     pub name: &'static str,
-    /// Whether the action requires the `unraid:read` scope.
-    ///
-    /// `true` for all data actions and `status` (need `unraid:read`).
-    /// `false` only for `help`, which requires no scope.
-    pub read_only: bool,
+    /// The OAuth/JWT scope this action requires.
+    pub scope: Scope,
+}
+
+/// Scope an action requires. `unraid:admin` satisfies `unraid:read`, so a
+/// read-scoped token cannot reach a [`Scope::Write`] (mutating) action.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum Scope {
+    /// No scope required (the `help` meta action).
+    None,
+    /// `unraid:read` — every data *query* action, plus `status`.
+    Read,
+    /// `unraid:admin` — mutating actions that change server state.
+    Write,
 }
 
 /// The canonical action list. Order is preserved in the JSON Schema enum and the
@@ -23,244 +32,260 @@ pub(super) struct ActionSpec {
 pub(super) const ACTIONS: &[ActionSpec] = &[
     ActionSpec {
         name: "array",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "disks",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "docker",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "docker_logs",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "vms",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "server",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "info",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "shares",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "notifications",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "log_files",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "log_file",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "services",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "network",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "ups",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "ups_config",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "metrics",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "plugins",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "parity_history",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "vars",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "registration",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "flash",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "rclone",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "remote_access",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "connect",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "online",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "system_time",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "installed_unraid_plugins",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "is_sso_enabled",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "public_oidc_providers",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "oidc_providers",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "oidc_configuration",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "api_keys",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "api_key_possible_roles",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "api_key_possible_permissions",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "get_available_auth_actions",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "get_api_key_creation_form_schema",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "config",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "settings",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "display",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "customization",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "internal_boot_context",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "me",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "owner",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "servers",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "is_fresh_install",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "public_theme",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "network_interfaces",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "time_zone_options",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "assignable_disks",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "plugin_install_operations",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "cloud",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "api_key",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "disk",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "oidc_provider",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "ups_device_by_id",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "plugin_install_operation",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "validate_oidc_session",
-        read_only: true,
+        scope: Scope::Read,
     },
     ActionSpec {
         name: "get_permissions_for_roles",
-        read_only: true,
+        scope: Scope::Read,
+    },
+    ActionSpec {
+        name: "recalculate_overview",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "delete_archived_notifications",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "archive_notification",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "create_notification",
+        scope: Scope::Write,
     },
     ActionSpec {
         name: "status",
-        read_only: true,
+        scope: Scope::Read,
     },
     // `help` is the only action that requires no scope.
     ActionSpec {
         name: "help",
-        read_only: false,
+        scope: Scope::None,
     },
 ];
 
@@ -275,7 +300,17 @@ pub(super) static UNRAID_ACTIONS: LazyLock<Vec<&'static str>> =
 pub fn data_action_names() -> Vec<&'static str> {
     ACTIONS
         .iter()
-        .filter(|a| a.read_only && a.name != "status")
+        .filter(|a| a.scope == Scope::Read && a.name != "status")
+        .map(|a| a.name)
+        .collect()
+}
+
+/// The mutating (write-scoped) actions. Re-exported for the same reason as
+/// [`data_action_names`] — so the contract/scenario tests cover mutations too.
+pub fn write_action_names() -> Vec<&'static str> {
+    ACTIONS
+        .iter()
+        .filter(|a| a.scope == Scope::Write)
         .map(|a| a.name)
         .collect()
 }
@@ -283,7 +318,7 @@ pub fn data_action_names() -> Vec<&'static str> {
 pub(super) fn tool_definitions() -> Vec<Value> {
     vec![json!({
         "name": "unraid",
-        "description": "Query the Unraid server via its GraphQL API (read-only). Use action=help for documentation.",
+        "description": "Query and manage the Unraid server via its GraphQL API. Read actions need scope unraid:read; mutating actions need unraid:admin. Use action=help for documentation.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -336,7 +371,12 @@ pub(super) fn tool_definitions() -> Vec<Value> {
                     "type": "array",
                     "items": { "type": "string" },
                     "description": "Role names — required for action=get_permissions_for_roles."
-                }
+                },
+                "title": { "type": "string", "description": "Notification title (create_notification)." },
+                "subject": { "type": "string", "description": "Notification subject (create_notification)." },
+                "description": { "type": "string", "description": "Notification body (create_notification)." },
+                "importance": { "type": "string", "enum": ["ALERT", "INFO", "WARNING"], "description": "Notification importance (create_notification)." },
+                "link": { "type": "string", "description": "Optional notification link (create_notification)." }
             },
             "required": ["action"]
         }
@@ -347,15 +387,18 @@ pub(super) fn tool_definitions() -> Vec<Value> {
 mod tests {
     use super::*;
 
-    /// `help` is the only action that requires no scope; every other action is
-    /// read-scoped. This guards against silently flipping the scope flag.
+    /// `help` is the only unscoped action; query actions are read-scoped and
+    /// mutating actions are write-scoped. Guards against silently flipping scope.
     #[test]
     fn only_help_is_unscoped() {
         for spec in ACTIONS {
-            if spec.name == "help" {
-                assert!(!spec.read_only, "help must require no scope");
-            } else {
-                assert!(spec.read_only, "{} must be read-scoped", spec.name);
+            match spec.name {
+                "help" => assert!(spec.scope == Scope::None, "help must be unscoped"),
+                _ => assert!(
+                    spec.scope == Scope::Read || spec.scope == Scope::Write,
+                    "{} must be read- or write-scoped",
+                    spec.name
+                ),
             }
         }
     }

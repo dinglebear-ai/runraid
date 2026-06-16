@@ -253,6 +253,31 @@ impl UnraidService {
         self.client.get_permissions_for_roles(roles).await
     }
 
+    pub async fn recalculate_overview(&self) -> Result<Value> {
+        self.client.recalculate_overview().await
+    }
+
+    pub async fn delete_archived_notifications(&self) -> Result<Value> {
+        self.client.delete_archived_notifications().await
+    }
+
+    pub async fn archive_notification(&self, id: &str) -> Result<Value> {
+        self.client.archive_notification(id).await
+    }
+
+    pub async fn create_notification(
+        &self,
+        title: &str,
+        subject: &str,
+        description: &str,
+        importance: &str,
+        link: Option<&str>,
+    ) -> Result<Value> {
+        self.client
+            .create_notification(title, subject, description, importance, link)
+            .await
+    }
+
     pub async fn rclone(&self) -> Result<Value> {
         self.client.rclone().await
     }

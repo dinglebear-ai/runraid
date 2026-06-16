@@ -411,6 +411,60 @@ impl UnraidClient {
             .await
     }
 
+    // ── mutations (write) ──
+    pub async fn recalculate_overview(&self) -> Result<Value> {
+        use cynic::MutationBuilder;
+        self.run_typed(crate::gql_typed::RecalculateOverviewMutation::build(()))
+            .await
+    }
+
+    pub async fn delete_archived_notifications(&self) -> Result<Value> {
+        use cynic::MutationBuilder;
+        self.run_typed(crate::gql_typed::DeleteArchivedNotificationsMutation::build(()))
+            .await
+    }
+
+    pub async fn archive_notification(&self, id: &str) -> Result<Value> {
+        use crate::gql_typed::{ArchiveNotificationMutation, PrefixedID, PrefixedIdVars};
+        use cynic::MutationBuilder;
+        self.run_typed(ArchiveNotificationMutation::build(PrefixedIdVars {
+            id: PrefixedID(id.to_string()),
+        }))
+        .await
+    }
+
+    pub async fn create_notification(
+        &self,
+        title: &str,
+        subject: &str,
+        description: &str,
+        importance: &str,
+        link: Option<&str>,
+    ) -> Result<Value> {
+        use crate::gql_typed::{
+            CreateNotificationMutation, CreateNotificationVars, NotificationData,
+            NotificationImportance,
+        };
+        use cynic::MutationBuilder;
+        let importance: NotificationImportance = serde_json::from_value(json!(importance))
+            .map_err(|e| {
+                UpstreamError::Other(format!(
+                    "invalid importance (expected ALERT/INFO/WARNING): {e}"
+                ))
+            })?;
+        let input = NotificationData {
+            title: title.to_string(),
+            subject: subject.to_string(),
+            description: description.to_string(),
+            importance,
+            link: link.map(|s| s.to_string()),
+        };
+        self.run_typed(CreateNotificationMutation::build(CreateNotificationVars {
+            input,
+        }))
+        .await
+    }
+
     // ── queries ───────────────────────────────────────────────────────────────
 
     pub async fn array(&self) -> Result<Value> {

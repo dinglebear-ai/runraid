@@ -369,6 +369,35 @@ async fn dispatch_action(state: &AppState, action: &str, args: &Value) -> Result
             svc!(state.service.get_permissions_for_roles(&roles))
         }
 
+        // ── mutations (require unraid:admin) ──
+        "recalculate_overview" => svc!(state.service.recalculate_overview()),
+        "delete_archived_notifications" => svc!(state.service.delete_archived_notifications()),
+        "archive_notification" => {
+            let id = require_id(args, "archive_notification")?;
+            svc!(state.service.archive_notification(&id))
+        }
+        "create_notification" => {
+            let req = |k: &str| {
+                string_arg(args, k).ok_or_else(|| {
+                    ToolError::InvalidParams(format!(
+                        "\"{k}\" is required for action=create_notification."
+                    ))
+                })
+            };
+            let title = req("title")?;
+            let subject = req("subject")?;
+            let description = req("description")?;
+            let importance = req("importance")?;
+            let link = string_arg(args, "link");
+            svc!(state.service.create_notification(
+                &title,
+                &subject,
+                &description,
+                &importance,
+                link.as_deref()
+            ))
+        }
+
         "status" => {
             let snap = state.counters.snapshot();
             Ok(json!({
