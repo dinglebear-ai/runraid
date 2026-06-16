@@ -41,7 +41,7 @@
 
 **Adding an action.** Edit `ACTIONS` in `schemas.rs` (one entry, with `Scope`), add the cynic op in `gql_typed.rs`, the `*_typed` client method (`graphql.rs`), the service pass-through (`app.rs`), the dispatch arm (`tools.rs`), the CLI (`commands.rs`/`parse.rs`/`dispatch.rs`), and a `healthy.json` fixture. The mock router (`classify_query`) and both test lists (`upstream_action_calls`/`mutation_action_calls`, derived from `ACTIONS`) cover it automatically; the schema-contract test validates the query + fixture against the SDL.
 
-**GraphQL-as-the-data-layer (legacy note):** the original ~24 read actions in `graphql.rs` are still hand-written query strings (the contract test guards them); new actions are typed cynic.
+**No hand-written query strings.** Every operation — reads and writes — is a typed cynic op in `gql_typed.rs`, checked against the SDL at compile time. `send_graphql` is the shared transport; `run_typed` is the single execution path.
 
 **Auth policy enum.** `AuthPolicy::LoopbackDev` skips all auth. `AuthPolicy::Mounted` uses `lab-auth` (bearer token or OAuth). Auth is automatically set to `LoopbackDev` when `config.mcp.host` starts with `127.` or `no_auth` is set.
 
