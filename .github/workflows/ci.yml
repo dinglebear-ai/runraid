@@ -59,6 +59,11 @@ jobs:
       - name: Run tests
         run: cargo nextest run --profile ci
 
+      # nextest doesn't build examples; build the standalone mock so its
+      # breakage is caught in CI too.
+      - name: Build example (mock server)
+        run: cargo build --example mock_unraid --features test-support
+
   check-toml:
     name: TOML Format
     runs-on: ubuntu-latest

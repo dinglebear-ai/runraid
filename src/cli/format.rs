@@ -791,4 +791,21 @@ mod tests {
         let size = bigint_f64(&json!("7810000000")) as i64;
         assert_eq!(fmt_kb(size), "7.3 TB");
     }
+
+    /// Every action's healthy fixture must render through `print_human` without
+    /// panicking (index-out-of-bounds, bad unwraps, wrong-shape access). New
+    /// actions fall through to the JSON default; this guards the bespoke ones.
+    #[test]
+    fn print_human_handles_every_fixture() {
+        const HEALTHY: &str = include_str!("../../tests/fixtures/scenarios/healthy.json");
+        let fixtures: serde_json::Map<String, Value> =
+            serde_json::from_str(HEALTHY).expect("healthy fixture is valid JSON");
+        for (action, payload) in &fixtures {
+            if action.starts_with('_') {
+                continue;
+            }
+            // Must not panic for any action's real-shaped payload.
+            print_human(action, payload);
+        }
+    }
 }
