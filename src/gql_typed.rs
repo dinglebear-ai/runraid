@@ -1645,6 +1645,341 @@ pub struct ParityCheckCancelNs {
 
 // new enum (input-side; SDL values are UPPER so SCREAMING_SNAKE rename maps cleanly)
 
+// ── mutations: apiKey / rclone / unraidPlugins / onboarding namespaces ─────────
+
+// --- input objects (outbound variables only; no serde derive needed) ----------
+
+#[derive(cynic::InputObject, Debug, Clone)]
+pub struct AddPermissionInput {
+    pub resource: Resource,
+    pub actions: Vec<AuthAction>, // [AuthAction!]! → non-null list
+}
+
+#[derive(cynic::InputObject, Debug, Clone)]
+pub struct CreateApiKeyInput {
+    pub name: String,
+    pub description: Option<String>,
+    pub roles: Option<Vec<Role>>,
+    pub permissions: Option<Vec<AddPermissionInput>>,
+    pub overwrite: Option<bool>,
+}
+
+#[derive(cynic::InputObject, Debug, Clone)]
+#[cynic(rename_all = "camelCase")]
+pub struct AddRoleForApiKeyInput {
+    pub api_key_id: PrefixedID,
+    pub role: Role,
+}
+
+#[derive(cynic::InputObject, Debug, Clone)]
+#[cynic(rename_all = "camelCase")]
+pub struct RemoveRoleFromApiKeyInput {
+    pub api_key_id: PrefixedID,
+    pub role: Role,
+}
+
+#[derive(cynic::InputObject, Debug, Clone)]
+pub struct DeleteApiKeyInput {
+    pub ids: Vec<PrefixedID>, // [PrefixedID!]!
+}
+
+#[derive(cynic::InputObject, Debug, Clone)]
+pub struct UpdateApiKeyInput {
+    pub id: PrefixedID,
+    pub name: Option<String>,
+    pub description: Option<String>,
+    pub roles: Option<Vec<Role>>,
+    pub permissions: Option<Vec<AddPermissionInput>>,
+}
+
+#[derive(cynic::InputObject, Debug, Clone)]
+pub struct CreateRCloneRemoteInput {
+    pub name: String,
+    #[cynic(rename = "type")]
+    pub r#type: String,
+    pub parameters: Json,
+}
+
+#[derive(cynic::InputObject, Debug, Clone)]
+pub struct DeleteRCloneRemoteInput {
+    pub name: String,
+}
+
+#[derive(cynic::InputObject, Debug, Clone)]
+pub struct InstallPluginInput {
+    pub url: String,
+    pub name: Option<String>,
+    pub forced: Option<bool>,
+}
+
+// Note: InputObject field renaming — cynic InputObject does NOT honor a struct-level
+// `rename_all`, so snake_case Rust fields (`api_key_id`) map to camelCase SDL
+// (`apiKeyId`) automatically ONLY if you add `#[cynic(rename_all = "camelCase")]`.
+// To be safe and explicit, the derives above rely on cynic's default camelCase
+// mapping for input objects. If the build rejects `api_key_id`, add
+// `#[cynic(rename_all = "camelCase")]` to AddRoleForApiKeyInput / RemoveRoleFromApiKeyInput.
+
+// --- new response-selection refs ----------------------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Onboarding", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct OnboardingRef {
+    pub status: OnboardingStatus,
+    pub completed: bool,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "RCloneRemote", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct RCloneRemoteRef {
+    pub name: String,
+    #[cynic(rename = "type")]
+    pub r#type: String,
+}
+
+// --- variables ----------------------------------------------------------------
+
+#[derive(cynic::QueryVariables)]
+pub struct CreateApiKeyVars {
+    pub input: CreateApiKeyInput,
+}
+#[derive(cynic::QueryVariables)]
+pub struct AddRoleForApiKeyVars {
+    pub input: AddRoleForApiKeyInput,
+}
+#[derive(cynic::QueryVariables)]
+pub struct RemoveRoleFromApiKeyVars {
+    pub input: RemoveRoleFromApiKeyInput,
+}
+#[derive(cynic::QueryVariables)]
+pub struct DeleteApiKeyVars {
+    pub input: DeleteApiKeyInput,
+}
+#[derive(cynic::QueryVariables)]
+pub struct UpdateApiKeyVars {
+    pub input: UpdateApiKeyInput,
+}
+#[derive(cynic::QueryVariables)]
+pub struct CreateRCloneRemoteVars {
+    pub input: CreateRCloneRemoteInput,
+}
+#[derive(cynic::QueryVariables)]
+pub struct DeleteRCloneRemoteVars {
+    pub input: DeleteRCloneRemoteInput,
+}
+#[derive(cynic::QueryVariables)]
+pub struct InstallPluginVars {
+    pub input: InstallPluginInput,
+}
+
+// --- apiKey namespace ---------------------------------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "CreateApiKeyVars")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyCreateMutation {
+    pub api_key: ApiKeyCreateNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "ApiKeyMutations",
+    variables = "CreateApiKeyVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyCreateNs {
+    #[arguments(input: $input)]
+    pub create: ApiKey,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "AddRoleForApiKeyVars")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyAddRoleMutation {
+    pub api_key: ApiKeyAddRoleNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "ApiKeyMutations",
+    variables = "AddRoleForApiKeyVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyAddRoleNs {
+    #[arguments(input: $input)]
+    pub add_role: bool,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "RemoveRoleFromApiKeyVars")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyRemoveRoleMutation {
+    pub api_key: ApiKeyRemoveRoleNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "ApiKeyMutations",
+    variables = "RemoveRoleFromApiKeyVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyRemoveRoleNs {
+    #[arguments(input: $input)]
+    pub remove_role: bool,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "DeleteApiKeyVars")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyDeleteMutation {
+    pub api_key: ApiKeyDeleteNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "ApiKeyMutations",
+    variables = "DeleteApiKeyVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyDeleteNs {
+    #[arguments(input: $input)]
+    pub delete: bool,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "UpdateApiKeyVars")]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyUpdateMutation {
+    pub api_key: ApiKeyUpdateNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "ApiKeyMutations",
+    variables = "UpdateApiKeyVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiKeyUpdateNs {
+    #[arguments(input: $input)]
+    pub update: ApiKey,
+}
+
+// --- rclone namespace ---------------------------------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "CreateRCloneRemoteVars")]
+#[serde(rename_all = "camelCase")]
+pub struct RcloneCreateRemoteMutation {
+    pub rclone: RcloneCreateRemoteNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "RCloneMutations",
+    variables = "CreateRCloneRemoteVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct RcloneCreateRemoteNs {
+    #[arguments(input: $input)]
+    pub create_r_clone_remote: RCloneRemoteRef,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "DeleteRCloneRemoteVars")]
+#[serde(rename_all = "camelCase")]
+pub struct RcloneDeleteRemoteMutation {
+    pub rclone: RcloneDeleteRemoteNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "RCloneMutations",
+    variables = "DeleteRCloneRemoteVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct RcloneDeleteRemoteNs {
+    #[arguments(input: $input)]
+    pub delete_r_clone_remote: bool,
+}
+
+// --- unraidPlugins namespace --------------------------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "InstallPluginVars")]
+#[serde(rename_all = "camelCase")]
+pub struct UnraidPluginsInstallPluginMutation {
+    pub unraid_plugins: UnraidPluginsInstallPluginNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "UnraidPluginsMutations",
+    variables = "InstallPluginVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct UnraidPluginsInstallPluginNs {
+    #[arguments(input: $input)]
+    pub install_plugin: PluginInstallOperation,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "InstallPluginVars")]
+#[serde(rename_all = "camelCase")]
+pub struct UnraidPluginsInstallLanguageMutation {
+    pub unraid_plugins: UnraidPluginsInstallLanguageNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "UnraidPluginsMutations",
+    variables = "InstallPluginVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct UnraidPluginsInstallLanguageNs {
+    #[arguments(input: $input)]
+    pub install_language: PluginInstallOperation,
+}
+
+// --- onboarding namespace (no-arg ops) ----------------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation")]
+#[serde(rename_all = "camelCase")]
+pub struct OnboardingCompleteMutation {
+    pub onboarding: OnboardingCompleteNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "OnboardingMutations", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct OnboardingCompleteNs {
+    pub complete_onboarding: OnboardingRef,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation")]
+#[serde(rename_all = "camelCase")]
+pub struct OnboardingResetMutation {
+    pub onboarding: OnboardingResetNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "OnboardingMutations", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct OnboardingResetNs {
+    pub reset_onboarding: OnboardingRef,
+}
+
 // ── enums (cynic checks them vs the SDL; serde does the JSON round-trip) ──────
 
 macro_rules! gql_enum {

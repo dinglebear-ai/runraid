@@ -218,6 +218,19 @@ pub mod testing {
                     "array_set_state" => json!({ "action": name, "desired_state": "START" }),
                     "parity_check_start" => json!({ "action": name, "correct": true }),
                     n if n.starts_with("array_") => json!({ "action": name, "id": "disk/sdb" }),
+                    "api_key_create" => json!({ "action": name, "name": "k" }),
+                    "api_key_add_role" | "api_key_remove_role" => {
+                        json!({ "action": name, "api_key_id": "apikey:0001", "role": "VIEWER" })
+                    }
+                    "api_key_delete" => json!({ "action": name, "ids": ["apikey:0001"] }),
+                    "api_key_update" => json!({ "action": name, "id": "apikey:0001" }),
+                    "rclone_create_r_clone_remote" => {
+                        json!({ "action": name, "name": "r", "type": "b2", "parameters": {} })
+                    }
+                    "rclone_delete_r_clone_remote" => json!({ "action": name, "name": "r" }),
+                    n if n.starts_with("unraid_plugins_install_") => {
+                        json!({ "action": name, "url": "https://example.com/p.plg" })
+                    }
                     _ => json!({ "action": name }),
                 };
                 (name, args)

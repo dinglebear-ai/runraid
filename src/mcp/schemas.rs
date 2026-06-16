@@ -379,6 +379,50 @@ pub(super) const ACTIONS: &[ActionSpec] = &[
         scope: Scope::Write,
     },
     ActionSpec {
+        name: "api_key_create",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "api_key_add_role",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "api_key_remove_role",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "api_key_delete",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "api_key_update",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "rclone_create_r_clone_remote",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "rclone_delete_r_clone_remote",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "unraid_plugins_install_plugin",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "unraid_plugins_install_language",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "onboarding_complete_onboarding",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "onboarding_reset_onboarding",
+        scope: Scope::Write,
+    },
+    ActionSpec {
         name: "status",
         scope: Scope::Read,
     },
@@ -481,7 +525,15 @@ pub(super) fn tool_definitions() -> Vec<Value> {
                 "slot": { "type": "integer", "description": "Array disk slot (array_add/remove_disk_from_array)." },
                 "correct": { "type": "boolean", "description": "Whether the parity check should write corrections (parity_check_start)." },
                 "with_image": { "type": "boolean", "description": "Also remove the image (docker_remove_container)." },
-                "ids": { "type": "array", "items": { "type": "string" }, "description": "Container IDs (docker_update_containers)." }
+                "ids": { "type": "array", "items": { "type": "string" }, "description": "Container IDs (docker_update_containers) / API key IDs (api_key_delete)." },
+                "api_key_id": { "type": "string", "description": "API key ID (api_key_add_role/remove_role)." },
+                "role": { "type": "string", "description": "Role name (api_key_add_role/remove_role)." },
+                "permissions": { "type": "array", "items": { "type": "object" }, "description": "Permissions [{resource, actions}] (api_key_create/update)." },
+                "overwrite": { "type": "boolean", "description": "Overwrite existing key (api_key_create)." },
+                "url": { "type": "string", "description": "Plugin .plg URL (unraid_plugins_install_*)." },
+                "forced": { "type": "boolean", "description": "Force install (unraid_plugins_install_*)." },
+                "type": { "type": "string", "description": "RClone remote type (rclone_create_r_clone_remote)." },
+                "parameters": { "type": "object", "description": "RClone remote parameters JSON (rclone_create_r_clone_remote)." }
             },
             "required": ["action"]
         }

@@ -1746,5 +1746,125 @@
         "status": "cancelled"
       }
     }
+  },
+  "api_key_create": {
+    "apiKey": {
+      "create": {
+        "id": "apikey:0001",
+        "key": "unraid_0123456789abcdef",
+        "name": "ci-bot",
+        "description": "CI service key",
+        "roles": [
+          "VIEWER"
+        ],
+        "createdAt": "2026-06-15T12:00:00.000Z",
+        "permissions": [
+          {
+            "resource": "DOCKER",
+            "actions": [
+              "READ_ANY"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "api_key_add_role": {
+    "apiKey": {
+      "addRole": true
+    }
+  },
+  "api_key_remove_role": {
+    "apiKey": {
+      "removeRole": true
+    }
+  },
+  "api_key_delete": {
+    "apiKey": {
+      "delete": true
+    }
+  },
+  "api_key_update": {
+    "apiKey": {
+      "update": {
+        "id": "apikey:0001",
+        "key": "unraid_0123456789abcdef",
+        "name": "ci-bot-renamed",
+        "description": "rotated",
+        "roles": [
+          "VIEWER",
+          "GUEST"
+        ],
+        "createdAt": "2026-06-15T12:00:00.000Z",
+        "permissions": [
+          {
+            "resource": "DOCKER",
+            "actions": [
+              "READ_ANY",
+              "READ_OWN"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "rclone_create_r_clone_remote": {
+    "rclone": {
+      "createRCloneRemote": {
+        "name": "backup-b2",
+        "type": "b2"
+      }
+    }
+  },
+  "rclone_delete_r_clone_remote": {
+    "rclone": {
+      "deleteRCloneRemote": true
+    }
+  },
+  "unraid_plugins_install_plugin": {
+    "unraidPlugins": {
+      "installPlugin": {
+        "id": "op-1a2b",
+        "url": "https://example.com/plugin.plg",
+        "name": "my.plugin",
+        "status": "QUEUED",
+        "createdAt": "2026-06-15T12:00:00.000Z",
+        "updatedAt": null,
+        "finishedAt": null,
+        "output": []
+      }
+    }
+  },
+  "unraid_plugins_install_language": {
+    "unraidPlugins": {
+      "installLanguage": {
+        "id": "op-3c4d",
+        "url": "https://example.com/lang-de.plg",
+        "name": "lang-de",
+        "status": "RUNNING",
+        "createdAt": "2026-06-15T12:00:00.000Z",
+        "updatedAt": "2026-06-15T12:00:05.000Z",
+        "finishedAt": null,
+        "output": [
+          "downloading"
+        ]
+      }
+    }
+  },
+  "onboarding_complete_onboarding": {
+    "onboarding": {
+      "completeOnboarding": {
+        "status": "COMPLETED",
+        "completed": true
+      }
+    }
+  },
+  "onboarding_reset_onboarding": {
+    "onboarding": {
+      "resetOnboarding": {
+        "status": "INCOMPLETE",
+        "completed": false
+      }
+    }
   }
 }

@@ -503,6 +503,139 @@ async fn dispatch_action(state: &AppState, action: &str, args: &Value) -> Result
         "parity_check_pause" => svc!(state.service.parity_check_pause()),
         "parity_check_resume" => svc!(state.service.parity_check_resume()),
         "parity_check_cancel" => svc!(state.service.parity_check_cancel()),
+        "api_key_create" => {
+            let name = string_arg(args, "name").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"name\" is required for action=api_key_create.".to_string(),
+                )
+            })?;
+            let roles = args.get("roles").and_then(|v| v.as_array()).map(|a| {
+                a.iter()
+                    .filter_map(|x| x.as_str().map(String::from))
+                    .collect::<Vec<_>>()
+            });
+            let perms = args.get("permissions").cloned().unwrap_or(Value::Null);
+            svc!(state.service.api_key_create(
+                &name,
+                string_arg(args, "description").as_deref(),
+                roles.as_deref(),
+                &perms,
+                args.get("overwrite").and_then(|v| v.as_bool())
+            ))
+        }
+        "api_key_add_role" => {
+            let id = string_arg(args, "api_key_id").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"api_key_id\" is required for action=api_key_add_role.".to_string(),
+                )
+            })?;
+            let role = string_arg(args, "role").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"role\" is required for action=api_key_add_role.".to_string(),
+                )
+            })?;
+            svc!(state.service.api_key_add_role(&id, &role))
+        }
+        "api_key_remove_role" => {
+            let id = string_arg(args, "api_key_id").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"api_key_id\" is required for action=api_key_remove_role.".to_string(),
+                )
+            })?;
+            let role = string_arg(args, "role").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"role\" is required for action=api_key_remove_role.".to_string(),
+                )
+            })?;
+            svc!(state.service.api_key_remove_role(&id, &role))
+        }
+        "api_key_delete" => {
+            let ids = args
+                .get("ids")
+                .and_then(|v| v.as_array())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|x| x.as_str().map(String::from))
+                        .collect::<Vec<_>>()
+                })
+                .filter(|v| !v.is_empty())
+                .ok_or_else(|| {
+                    ToolError::InvalidParams(
+                        "\"ids\" (non-empty array) is required for action=api_key_delete."
+                            .to_string(),
+                    )
+                })?;
+            svc!(state.service.api_key_delete(&ids))
+        }
+        "api_key_update" => {
+            let id = require_id(args, "api_key_update")?;
+            let roles = args.get("roles").and_then(|v| v.as_array()).map(|a| {
+                a.iter()
+                    .filter_map(|x| x.as_str().map(String::from))
+                    .collect::<Vec<_>>()
+            });
+            let perms = args.get("permissions").cloned().unwrap_or(Value::Null);
+            svc!(state.service.api_key_update(
+                &id,
+                string_arg(args, "name").as_deref(),
+                string_arg(args, "description").as_deref(),
+                roles.as_deref(),
+                &perms
+            ))
+        }
+        "rclone_create_r_clone_remote" => {
+            let name = string_arg(args, "name").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"name\" is required for action=rclone_create_r_clone_remote.".to_string(),
+                )
+            })?;
+            let ty = string_arg(args, "type").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"type\" is required for action=rclone_create_r_clone_remote.".to_string(),
+                )
+            })?;
+            let parameters = args
+                .get("parameters")
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!({}));
+            svc!(state
+                .service
+                .rclone_create_r_clone_remote(&name, &ty, parameters))
+        }
+        "rclone_delete_r_clone_remote" => {
+            let name = string_arg(args, "name").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"name\" is required for action=rclone_delete_r_clone_remote.".to_string(),
+                )
+            })?;
+            svc!(state.service.rclone_delete_r_clone_remote(&name))
+        }
+        "unraid_plugins_install_plugin" => {
+            let url = string_arg(args, "url").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"url\" is required for action=unraid_plugins_install_plugin.".to_string(),
+                )
+            })?;
+            svc!(state.service.unraid_plugins_install_plugin(
+                &url,
+                string_arg(args, "name").as_deref(),
+                args.get("forced").and_then(|v| v.as_bool())
+            ))
+        }
+        "unraid_plugins_install_language" => {
+            let url = string_arg(args, "url").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"url\" is required for action=unraid_plugins_install_language.".to_string(),
+                )
+            })?;
+            svc!(state.service.unraid_plugins_install_language(
+                &url,
+                string_arg(args, "name").as_deref(),
+                args.get("forced").and_then(|v| v.as_bool())
+            ))
+        }
+        "onboarding_complete_onboarding" => svc!(state.service.onboarding_complete_onboarding()),
+        "onboarding_reset_onboarding" => svc!(state.service.onboarding_reset_onboarding()),
 
         "status" => {
             let snap = state.counters.snapshot();

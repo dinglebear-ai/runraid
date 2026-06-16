@@ -370,6 +370,78 @@ impl UnraidService {
     pub async fn parity_check_cancel(&self) -> Result<Value> {
         self.client.parity_check_cancel().await
     }
+    pub async fn api_key_create(
+        &self,
+        name: &str,
+        description: Option<&str>,
+        roles: Option<&[String]>,
+        permissions: &Value,
+        overwrite: Option<bool>,
+    ) -> Result<Value> {
+        self.client
+            .api_key_create(name, description, roles, permissions, overwrite)
+            .await
+    }
+    pub async fn api_key_add_role(&self, api_key_id: &str, role: &str) -> Result<Value> {
+        self.client.api_key_add_role(api_key_id, role).await
+    }
+    pub async fn api_key_remove_role(&self, api_key_id: &str, role: &str) -> Result<Value> {
+        self.client.api_key_remove_role(api_key_id, role).await
+    }
+    pub async fn api_key_delete(&self, ids: &[String]) -> Result<Value> {
+        self.client.api_key_delete(ids).await
+    }
+    pub async fn api_key_update(
+        &self,
+        id: &str,
+        name: Option<&str>,
+        description: Option<&str>,
+        roles: Option<&[String]>,
+        permissions: &Value,
+    ) -> Result<Value> {
+        self.client
+            .api_key_update(id, name, description, roles, permissions)
+            .await
+    }
+    pub async fn rclone_create_r_clone_remote(
+        &self,
+        name: &str,
+        remote_type: &str,
+        parameters: Value,
+    ) -> Result<Value> {
+        self.client
+            .rclone_create_r_clone_remote(name, remote_type, parameters)
+            .await
+    }
+    pub async fn rclone_delete_r_clone_remote(&self, name: &str) -> Result<Value> {
+        self.client.rclone_delete_r_clone_remote(name).await
+    }
+    pub async fn unraid_plugins_install_plugin(
+        &self,
+        url: &str,
+        name: Option<&str>,
+        forced: Option<bool>,
+    ) -> Result<Value> {
+        self.client
+            .unraid_plugins_install_plugin(url, name, forced)
+            .await
+    }
+    pub async fn unraid_plugins_install_language(
+        &self,
+        url: &str,
+        name: Option<&str>,
+        forced: Option<bool>,
+    ) -> Result<Value> {
+        self.client
+            .unraid_plugins_install_language(url, name, forced)
+            .await
+    }
+    pub async fn onboarding_complete_onboarding(&self) -> Result<Value> {
+        self.client.onboarding_complete_onboarding().await
+    }
+    pub async fn onboarding_reset_onboarding(&self) -> Result<Value> {
+        self.client.onboarding_reset_onboarding().await
+    }
 
     pub async fn rclone(&self) -> Result<Value> {
         self.client.rclone().await

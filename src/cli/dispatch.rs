@@ -191,6 +191,57 @@ pub async fn run(service: &UnraidService, cmd: CliCommand, json: bool) -> Result
         CliCommand::ParityCheckCancel => {
             ("parity_check_cancel", service.parity_check_cancel().await?)
         }
+        CliCommand::ApiKeyCreate(name) => (
+            "api_key_create",
+            service
+                .api_key_create(&name, None, None, &serde_json::Value::Null, None)
+                .await?,
+        ),
+        CliCommand::ApiKeyAddRole(id, role) => (
+            "api_key_add_role",
+            service.api_key_add_role(&id, &role).await?,
+        ),
+        CliCommand::ApiKeyRemoveRole(id, role) => (
+            "api_key_remove_role",
+            service.api_key_remove_role(&id, &role).await?,
+        ),
+        CliCommand::ApiKeyDelete(ids) => ("api_key_delete", service.api_key_delete(&ids).await?),
+        CliCommand::ApiKeyUpdate(id) => (
+            "api_key_update",
+            service
+                .api_key_update(&id, None, None, None, &serde_json::Value::Null)
+                .await?,
+        ),
+        CliCommand::RcloneCreateRemote(name, ty) => (
+            "rclone_create_r_clone_remote",
+            service
+                .rclone_create_r_clone_remote(&name, &ty, serde_json::json!({}))
+                .await?,
+        ),
+        CliCommand::RcloneDeleteRemote(name) => (
+            "rclone_delete_r_clone_remote",
+            service.rclone_delete_r_clone_remote(&name).await?,
+        ),
+        CliCommand::UnraidPluginsInstallPlugin(url) => (
+            "unraid_plugins_install_plugin",
+            service
+                .unraid_plugins_install_plugin(&url, None, None)
+                .await?,
+        ),
+        CliCommand::UnraidPluginsInstallLanguage(url) => (
+            "unraid_plugins_install_language",
+            service
+                .unraid_plugins_install_language(&url, None, None)
+                .await?,
+        ),
+        CliCommand::OnboardingComplete => (
+            "onboarding_complete_onboarding",
+            service.onboarding_complete_onboarding().await?,
+        ),
+        CliCommand::OnboardingReset => (
+            "onboarding_reset_onboarding",
+            service.onboarding_reset_onboarding().await?,
+        ),
         // Doctor and setup are intercepted in main.rs before reaching dispatch.
         CliCommand::Doctor | CliCommand::Setup(_) => {
             unreachable!("doctor/setup are handled before service construction")

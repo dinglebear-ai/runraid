@@ -28,6 +28,42 @@ pub enum UpstreamError {
     Other(String),
 }
 
+/// Parse role-name strings into the typed `Role` enum list (GraphQL SCREAMING_SNAKE).
+fn parse_role(role: &str) -> Result<crate::gql_typed::Role> {
+    serde_json::from_value(serde_json::json!(role))
+        .map_err(|e| UpstreamError::Other(format!("invalid role `{role}`: {e}")).into())
+}
+
+fn parse_roles(roles: Option<&[String]>) -> Result<Option<Vec<crate::gql_typed::Role>>> {
+    match roles {
+        None => Ok(None),
+        Some(r) => serde_json::from_value(serde_json::to_value(r)?)
+            .map(Some)
+            .map_err(|e| UpstreamError::Other(format!("invalid roles: {e}")).into()),
+    }
+}
+
+/// Build `AddPermissionInput`s from a JSON array of `{resource, actions}` objects.
+fn parse_permissions(v: &Value) -> Result<Option<Vec<crate::gql_typed::AddPermissionInput>>> {
+    use crate::gql_typed::AddPermissionInput;
+    let Some(arr) = v.as_array() else {
+        return Ok(None);
+    };
+    let mut out = Vec::with_capacity(arr.len());
+    for p in arr {
+        let resource = serde_json::from_value(p.get("resource").cloned().unwrap_or(Value::Null))
+            .map_err(|e| UpstreamError::Other(format!("invalid permission resource: {e}")))?;
+        let actions = serde_json::from_value(
+            p.get("actions")
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!([])),
+        )
+        .map_err(|e| UpstreamError::Other(format!("invalid permission actions: {e}")))?;
+        out.push(AddPermissionInput { resource, actions });
+    }
+    Ok(Some(out))
+}
+
 #[derive(Clone)]
 pub struct UnraidClient {
     client: Client,
@@ -702,6 +738,180 @@ impl UnraidClient {
     pub async fn parity_check_cancel(&self) -> Result<Value> {
         use cynic::MutationBuilder;
         self.run_typed(crate::gql_typed::ParityCheckCancelMutation::build(()))
+            .await
+    }
+
+    pub async fn api_key_create(
+        &self,
+        name: &str,
+        description: Option<&str>,
+        roles: Option<&[String]>,
+        permissions: &Value,
+        overwrite: Option<bool>,
+    ) -> Result<Value> {
+        use crate::gql_typed::{ApiKeyCreateMutation, CreateApiKeyInput, CreateApiKeyVars};
+        use cynic::MutationBuilder;
+        let input = CreateApiKeyInput {
+            name: name.to_string(),
+            description: description.map(|s| s.to_string()),
+            roles: parse_roles(roles)?,
+            permissions: parse_permissions(permissions)?,
+            overwrite,
+        };
+        self.run_typed(ApiKeyCreateMutation::build(CreateApiKeyVars { input }))
+            .await
+    }
+
+    pub async fn api_key_add_role(&self, api_key_id: &str, role: &str) -> Result<Value> {
+        use crate::gql_typed::{
+            AddRoleForApiKeyInput, AddRoleForApiKeyVars, ApiKeyAddRoleMutation, PrefixedID,
+        };
+        use cynic::MutationBuilder;
+        let input = AddRoleForApiKeyInput {
+            api_key_id: PrefixedID(api_key_id.to_string()),
+            role: parse_role(role)?,
+        };
+        self.run_typed(ApiKeyAddRoleMutation::build(AddRoleForApiKeyVars { input }))
+            .await
+    }
+
+    pub async fn api_key_remove_role(&self, api_key_id: &str, role: &str) -> Result<Value> {
+        use crate::gql_typed::{
+            ApiKeyRemoveRoleMutation, PrefixedID, RemoveRoleFromApiKeyInput,
+            RemoveRoleFromApiKeyVars,
+        };
+        use cynic::MutationBuilder;
+        let input = RemoveRoleFromApiKeyInput {
+            api_key_id: PrefixedID(api_key_id.to_string()),
+            role: parse_role(role)?,
+        };
+        self.run_typed(ApiKeyRemoveRoleMutation::build(RemoveRoleFromApiKeyVars {
+            input,
+        }))
+        .await
+    }
+
+    pub async fn api_key_delete(&self, ids: &[String]) -> Result<Value> {
+        use crate::gql_typed::{
+            ApiKeyDeleteMutation, DeleteApiKeyInput, DeleteApiKeyVars, PrefixedID,
+        };
+        use cynic::MutationBuilder;
+        let input = DeleteApiKeyInput {
+            ids: ids.iter().map(|i| PrefixedID(i.clone())).collect(),
+        };
+        self.run_typed(ApiKeyDeleteMutation::build(DeleteApiKeyVars { input }))
+            .await
+    }
+
+    pub async fn api_key_update(
+        &self,
+        id: &str,
+        name: Option<&str>,
+        description: Option<&str>,
+        roles: Option<&[String]>,
+        permissions: &Value,
+    ) -> Result<Value> {
+        use crate::gql_typed::{
+            ApiKeyUpdateMutation, PrefixedID, UpdateApiKeyInput, UpdateApiKeyVars,
+        };
+        use cynic::MutationBuilder;
+        let input = UpdateApiKeyInput {
+            id: PrefixedID(id.to_string()),
+            name: name.map(|s| s.to_string()),
+            description: description.map(|s| s.to_string()),
+            roles: parse_roles(roles)?,
+            permissions: parse_permissions(permissions)?,
+        };
+        self.run_typed(ApiKeyUpdateMutation::build(UpdateApiKeyVars { input }))
+            .await
+    }
+
+    pub async fn rclone_create_r_clone_remote(
+        &self,
+        name: &str,
+        remote_type: &str,
+        parameters: Value,
+    ) -> Result<Value> {
+        use crate::gql_typed::{
+            CreateRCloneRemoteInput, CreateRCloneRemoteVars, Json, RcloneCreateRemoteMutation,
+        };
+        use cynic::MutationBuilder;
+        let input = CreateRCloneRemoteInput {
+            name: name.to_string(),
+            r#type: remote_type.to_string(),
+            parameters: Json(parameters),
+        };
+        self.run_typed(RcloneCreateRemoteMutation::build(CreateRCloneRemoteVars {
+            input,
+        }))
+        .await
+    }
+
+    pub async fn rclone_delete_r_clone_remote(&self, name: &str) -> Result<Value> {
+        use crate::gql_typed::{
+            DeleteRCloneRemoteInput, DeleteRCloneRemoteVars, RcloneDeleteRemoteMutation,
+        };
+        use cynic::MutationBuilder;
+        let input = DeleteRCloneRemoteInput {
+            name: name.to_string(),
+        };
+        self.run_typed(RcloneDeleteRemoteMutation::build(DeleteRCloneRemoteVars {
+            input,
+        }))
+        .await
+    }
+
+    pub async fn unraid_plugins_install_plugin(
+        &self,
+        url: &str,
+        name: Option<&str>,
+        forced: Option<bool>,
+    ) -> Result<Value> {
+        use crate::gql_typed::{
+            InstallPluginInput, InstallPluginVars, UnraidPluginsInstallPluginMutation,
+        };
+        use cynic::MutationBuilder;
+        let input = InstallPluginInput {
+            url: url.to_string(),
+            name: name.map(|s| s.to_string()),
+            forced,
+        };
+        self.run_typed(UnraidPluginsInstallPluginMutation::build(
+            InstallPluginVars { input },
+        ))
+        .await
+    }
+
+    pub async fn unraid_plugins_install_language(
+        &self,
+        url: &str,
+        name: Option<&str>,
+        forced: Option<bool>,
+    ) -> Result<Value> {
+        use crate::gql_typed::{
+            InstallPluginInput, InstallPluginVars, UnraidPluginsInstallLanguageMutation,
+        };
+        use cynic::MutationBuilder;
+        let input = InstallPluginInput {
+            url: url.to_string(),
+            name: name.map(|s| s.to_string()),
+            forced,
+        };
+        self.run_typed(UnraidPluginsInstallLanguageMutation::build(
+            InstallPluginVars { input },
+        ))
+        .await
+    }
+
+    pub async fn onboarding_complete_onboarding(&self) -> Result<Value> {
+        use cynic::MutationBuilder;
+        self.run_typed(crate::gql_typed::OnboardingCompleteMutation::build(()))
+            .await
+    }
+
+    pub async fn onboarding_reset_onboarding(&self) -> Result<Value> {
+        use cynic::MutationBuilder;
+        self.run_typed(crate::gql_typed::OnboardingResetMutation::build(()))
             .await
     }
 

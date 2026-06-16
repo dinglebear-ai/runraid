@@ -133,6 +133,27 @@ impl CliCommand {
             ["parity-check-pause"] => Self::ParityCheckPause,
             ["parity-check-resume"] => Self::ParityCheckResume,
             ["parity-check-cancel"] => Self::ParityCheckCancel,
+            ["api-key-create", name] => Self::ApiKeyCreate(name.to_string()),
+            ["api-key-add-role", id, role] => Self::ApiKeyAddRole(id.to_string(), role.to_string()),
+            ["api-key-remove-role", id, role] => {
+                Self::ApiKeyRemoveRole(id.to_string(), role.to_string())
+            }
+            ["api-key-delete", ids @ ..] if !ids.is_empty() => {
+                Self::ApiKeyDelete(ids.iter().map(|s| s.to_string()).collect())
+            }
+            ["api-key-update", id] => Self::ApiKeyUpdate(id.to_string()),
+            ["rclone-create-remote", name, ty] => {
+                Self::RcloneCreateRemote(name.to_string(), ty.to_string())
+            }
+            ["rclone-delete-remote", name] => Self::RcloneDeleteRemote(name.to_string()),
+            ["unraid-plugins-install-plugin", url] | ["install-plugin", url] => {
+                Self::UnraidPluginsInstallPlugin(url.to_string())
+            }
+            ["unraid-plugins-install-language", url] | ["install-language", url] => {
+                Self::UnraidPluginsInstallLanguage(url.to_string())
+            }
+            ["onboarding-complete"] => Self::OnboardingComplete,
+            ["onboarding-reset"] => Self::OnboardingReset,
             ["doctor"] => Self::Doctor,
             ["setup", "check"] => Self::Setup(SetupCommand::Check),
             ["setup", "repair"] => Self::Setup(SetupCommand::Repair),
