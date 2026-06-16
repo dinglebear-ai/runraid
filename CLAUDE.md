@@ -2,13 +2,17 @@
 
 ## What this project is
 
-`unraid-mcp` is a Rust binary (`runraid`) that bridges Claude to the Unraid server GraphQL API via the Model Context Protocol. It is read-only: all data actions fetch data; none modify state.
+`unraid-mcp` is a Rust binary (`runraid`) that bridges Claude to the Unraid server GraphQL API via the Model Context Protocol. It covers the **full GraphQL surface** — all read queries **and** mutations (write operations). Read actions require the `unraid:read` scope; mutating actions require `unraid:admin` (see the scope model below).
 
 ## Module map
 
 | File | Role |
 |------|------|
-| `src/graphql.rs` | `UnraidClient` — raw HTTP client, one method per GraphQL query |
+| `src/graphql.rs` | `UnraidClient` — HTTP client; one method per operation. Read queries are hand-written strings; newer/typed operations run via cynic (`run_typed`/`send_graphql`) |
+| `src/gql_typed.rs` | **Typed cynic operations**: QueryFragment/Enum/Scalar/InputObject structs checked against the vendored SDL at compile time (`build.rs`) |
+| `build.rs` | Registers `schema/unraid-schema.graphql` with cynic for compile-time query checking |
+| `schema/unraid-schema.graphql` | Vendored Unraid SDL (provenance header at top) — the contract source |
+| `src/mock.rs` | Scenario-driven offline mock + `classify_query` router (behind `test-support`) |
 | `src/app.rs` | `UnraidService` — thin pass-through to `UnraidClient` (no business logic) |
 | `src/mcp/tools.rs` | Dispatches JSON args to service methods, returns `Value` |
 | `src/mcp/schemas.rs` | MCP tool JSON Schema and action enum |
@@ -27,7 +31,17 @@
 
 **Action-based dispatch.** The single MCP tool `unraid` uses an `action` string parameter. `mcp/tools.rs` matches on `action` and calls the corresponding service method.
 
-**GraphQL as the data layer.** `graphql.rs` POSTs to `UNRAID_API_URL` with `x-api-key: UNRAID_API_KEY`. Responses are `serde_json::Value` throughout — no typed schema on the Rust side.
+**GraphQL as the data layer.** `graphql.rs` POSTs to `UNRAID_API_URL` with `x-api-key: UNRAID_API_KEY`. Responses are `serde_json::Value` throughout the dispatch/CLI/MCP layers.
+
+**Typed at the wire, `Value` downstream (cynic).** Most operations are defined as typed cynic structs in `gql_typed.rs`, checked against the vendored SDL at **compile time** — a query/mutation that selects a non-existent field or wrong arg won't compile. `run_typed` runs the op over the existing reqwest client (we do NOT use cynic's `http-reqwest` — it wants reqwest 0.13, we're on 0.12) and serialises the typed result back to `Value`, so dispatch/formatters/MCP are unchanged. cynic owns response **deserialization** (its derives generate serde `Deserialize`); structs add `serde::Serialize` for the `Value` round-trip with `#[serde(rename_all = "camelCase")]`. Input objects add `serde::Deserialize` so MCP JSON args build them via `from_value`.
+
+**cynic gotchas** (learned the hard way): `ID!` → `cynic::Id` (not `String`); `BigInt` → string scalar, `Float`/`Int` → numbers; a Rust-keyword field (`type`, `virtual`) needs `r#type` + `#[cynic(rename = "...")]`; a GraphQL **argument** named after a keyword (`type:`) can't be expressed — `delete_notification` is omitted for this reason; enums whose SDL name differs in case (`UPSServiceState`) or whose values are lowercase (`ThemeName`) / double-underscored (`CONNECT__REMOTE_ACCESS`) need hand-written `#[cynic(graphql_type/rename)]`; namespaced mutations map to a selection — `mutation { vm { start } }` needs paired `Mutation`-root + `VmMutations`-namespace structs.
+
+**Scope model (`schemas.rs::Scope`).** `ActionSpec.scope` is `None` (only `help`), `Read` (`unraid:read` — all queries + `status`), or `Write` (`unraid:admin` — mutations). `unraid:admin` satisfies `unraid:read`, so a read-scoped token can't reach a mutation. `required_scope_for` derives gating from this single source.
+
+**Adding an action.** Edit `ACTIONS` in `schemas.rs` (one entry, with `Scope`), add the cynic op in `gql_typed.rs`, the `*_typed` client method (`graphql.rs`), the service pass-through (`app.rs`), the dispatch arm (`tools.rs`), the CLI (`commands.rs`/`parse.rs`/`dispatch.rs`), and a `healthy.json` fixture. The mock router (`classify_query`) and both test lists (`upstream_action_calls`/`mutation_action_calls`, derived from `ACTIONS`) cover it automatically; the schema-contract test validates the query + fixture against the SDL.
+
+**GraphQL-as-the-data-layer (legacy note):** the original ~24 read actions in `graphql.rs` are still hand-written query strings (the contract test guards them); new actions are typed cynic.
 
 **Auth policy enum.** `AuthPolicy::LoopbackDev` skips all auth. `AuthPolicy::Mounted` uses `lab-auth` (bearer token or OAuth). Auth is automatically set to `LoopbackDev` when `config.mcp.host` starts with `127.` or `no_auth` is set.
 
