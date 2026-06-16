@@ -307,6 +307,38 @@ pub(super) const ACTIONS: &[ActionSpec] = &[
         scope: Scope::Write,
     },
     ActionSpec {
+        name: "docker_start",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "docker_stop",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "docker_pause",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "docker_unpause",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "docker_update_container",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "docker_remove_container",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "docker_update_containers",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "docker_update_all_containers",
+        scope: Scope::Write,
+    },
+    ActionSpec {
         name: "status",
         scope: Scope::Read,
     },

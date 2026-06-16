@@ -107,6 +107,16 @@ impl CliCommand {
             ["vm-force-stop", id] => Self::VmForceStop(id.to_string()),
             ["vm-reboot", id] => Self::VmReboot(id.to_string()),
             ["vm-reset", id] => Self::VmReset(id.to_string()),
+            ["docker-start", id] => Self::DockerStart(id.to_string()),
+            ["docker-stop", id] => Self::DockerStop(id.to_string()),
+            ["docker-pause", id] => Self::DockerPause(id.to_string()),
+            ["docker-unpause", id] => Self::DockerUnpause(id.to_string()),
+            ["docker-update-container", id] => Self::DockerUpdateContainer(id.to_string()),
+            ["docker-remove-container", id] => Self::DockerRemoveContainer(id.to_string()),
+            ["docker-update-containers", ids @ ..] if !ids.is_empty() => {
+                Self::DockerUpdateContainers(ids.iter().map(|s| s.to_string()).collect())
+            }
+            ["docker-update-all-containers"] => Self::DockerUpdateAllContainers,
             ["doctor"] => Self::Doctor,
             ["setup", "check"] => Self::Setup(SetupCommand::Check),
             ["setup", "repair"] => Self::Setup(SetupCommand::Repair),

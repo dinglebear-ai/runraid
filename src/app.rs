@@ -305,6 +305,41 @@ impl UnraidService {
     pub async fn vm_reset(&self, id: &str) -> Result<Value> {
         self.client.vm_reset(id).await
     }
+    pub async fn docker_start(&self, id: &str) -> Result<Value> {
+        self.client.docker_start(id).await
+    }
+
+    pub async fn docker_stop(&self, id: &str) -> Result<Value> {
+        self.client.docker_stop(id).await
+    }
+
+    pub async fn docker_pause(&self, id: &str) -> Result<Value> {
+        self.client.docker_pause(id).await
+    }
+
+    pub async fn docker_unpause(&self, id: &str) -> Result<Value> {
+        self.client.docker_unpause(id).await
+    }
+
+    pub async fn docker_update_container(&self, id: &str) -> Result<Value> {
+        self.client.docker_update_container(id).await
+    }
+
+    pub async fn docker_remove_container(
+        &self,
+        id: &str,
+        with_image: Option<bool>,
+    ) -> Result<Value> {
+        self.client.docker_remove_container(id, with_image).await
+    }
+
+    pub async fn docker_update_containers(&self, ids: &[String]) -> Result<Value> {
+        self.client.docker_update_containers(ids).await
+    }
+
+    pub async fn docker_update_all_containers(&self) -> Result<Value> {
+        self.client.docker_update_all_containers().await
+    }
 
     pub async fn rclone(&self) -> Result<Value> {
         self.client.rclone().await

@@ -528,6 +528,81 @@ impl UnraidClient {
         .await
     }
 
+    pub async fn docker_start(&self, id: &str) -> Result<Value> {
+        use crate::gql_typed::{DockerIdVars, DockerStartMutation, PrefixedID};
+        use cynic::MutationBuilder;
+        self.run_typed(DockerStartMutation::build(DockerIdVars {
+            id: PrefixedID(id.to_string()),
+        }))
+        .await
+    }
+
+    pub async fn docker_stop(&self, id: &str) -> Result<Value> {
+        use crate::gql_typed::{DockerIdVars, DockerStopMutation, PrefixedID};
+        use cynic::MutationBuilder;
+        self.run_typed(DockerStopMutation::build(DockerIdVars {
+            id: PrefixedID(id.to_string()),
+        }))
+        .await
+    }
+
+    pub async fn docker_pause(&self, id: &str) -> Result<Value> {
+        use crate::gql_typed::{DockerIdVars, DockerPauseMutation, PrefixedID};
+        use cynic::MutationBuilder;
+        self.run_typed(DockerPauseMutation::build(DockerIdVars {
+            id: PrefixedID(id.to_string()),
+        }))
+        .await
+    }
+
+    pub async fn docker_unpause(&self, id: &str) -> Result<Value> {
+        use crate::gql_typed::{DockerIdVars, DockerUnpauseMutation, PrefixedID};
+        use cynic::MutationBuilder;
+        self.run_typed(DockerUnpauseMutation::build(DockerIdVars {
+            id: PrefixedID(id.to_string()),
+        }))
+        .await
+    }
+
+    pub async fn docker_update_container(&self, id: &str) -> Result<Value> {
+        use crate::gql_typed::{DockerIdVars, DockerUpdateContainerMutation, PrefixedID};
+        use cynic::MutationBuilder;
+        self.run_typed(DockerUpdateContainerMutation::build(DockerIdVars {
+            id: PrefixedID(id.to_string()),
+        }))
+        .await
+    }
+
+    pub async fn docker_remove_container(
+        &self,
+        id: &str,
+        with_image: Option<bool>,
+    ) -> Result<Value> {
+        use crate::gql_typed::{DockerRemoveContainerMutation, DockerRemoveVars, PrefixedID};
+        use cynic::MutationBuilder;
+        self.run_typed(DockerRemoveContainerMutation::build(DockerRemoveVars {
+            id: PrefixedID(id.to_string()),
+            with_image,
+        }))
+        .await
+    }
+
+    pub async fn docker_update_containers(&self, ids: &[String]) -> Result<Value> {
+        use crate::gql_typed::{DockerIdsVars, DockerUpdateContainersMutation, PrefixedID};
+        use cynic::MutationBuilder;
+        let ids = ids.iter().map(|i| PrefixedID(i.clone())).collect();
+        self.run_typed(DockerUpdateContainersMutation::build(DockerIdsVars { ids }))
+            .await
+    }
+
+    pub async fn docker_update_all_containers(&self) -> Result<Value> {
+        use cynic::MutationBuilder;
+        self.run_typed(crate::gql_typed::DockerUpdateAllContainersMutation::build(
+            (),
+        ))
+        .await
+    }
+
     // ── queries ───────────────────────────────────────────────────────────────
 
     pub async fn array(&self) -> Result<Value> {

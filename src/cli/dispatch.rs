@@ -139,6 +139,26 @@ pub async fn run(service: &UnraidService, cmd: CliCommand, json: bool) -> Result
         CliCommand::VmForceStop(id) => ("vm_force_stop", service.vm_force_stop(&id).await?),
         CliCommand::VmReboot(id) => ("vm_reboot", service.vm_reboot(&id).await?),
         CliCommand::VmReset(id) => ("vm_reset", service.vm_reset(&id).await?),
+        CliCommand::DockerStart(id) => ("docker_start", service.docker_start(&id).await?),
+        CliCommand::DockerStop(id) => ("docker_stop", service.docker_stop(&id).await?),
+        CliCommand::DockerPause(id) => ("docker_pause", service.docker_pause(&id).await?),
+        CliCommand::DockerUnpause(id) => ("docker_unpause", service.docker_unpause(&id).await?),
+        CliCommand::DockerUpdateContainer(id) => (
+            "docker_update_container",
+            service.docker_update_container(&id).await?,
+        ),
+        CliCommand::DockerRemoveContainer(id) => (
+            "docker_remove_container",
+            service.docker_remove_container(&id, None).await?,
+        ),
+        CliCommand::DockerUpdateContainers(ids) => (
+            "docker_update_containers",
+            service.docker_update_containers(&ids).await?,
+        ),
+        CliCommand::DockerUpdateAllContainers => (
+            "docker_update_all_containers",
+            service.docker_update_all_containers().await?,
+        ),
         // Doctor and setup are intercepted in main.rs before reaching dispatch.
         CliCommand::Doctor | CliCommand::Setup(_) => {
             unreachable!("doctor/setup are handled before service construction")

@@ -425,6 +425,39 @@ async fn dispatch_action(state: &AppState, action: &str, args: &Value) -> Result
             let id = require_id(args, "vm_reset")?;
             svc!(state.service.vm_reset(&id))
         }
+        "docker_start" => {
+            let id = require_id(args, "docker_start")?;
+            svc!(state.service.docker_start(&id))
+        }
+        "docker_stop" => {
+            let id = require_id(args, "docker_stop")?;
+            svc!(state.service.docker_stop(&id))
+        }
+        "docker_pause" => {
+            let id = require_id(args, "docker_pause")?;
+            svc!(state.service.docker_pause(&id))
+        }
+        "docker_unpause" => {
+            let id = require_id(args, "docker_unpause")?;
+            svc!(state.service.docker_unpause(&id))
+        }
+        "docker_update_container" => {
+            let id = require_id(args, "docker_update_container")?;
+            svc!(state.service.docker_update_container(&id))
+        }
+        "docker_remove_container" => {
+            let id = require_id(args, "docker_remove_container")?;
+            let with_image = args.get("with_image").and_then(|v| v.as_bool());
+            svc!(state.service.docker_remove_container(&id, with_image))
+        }
+        "docker_update_containers" => {
+            let ids = args.get("ids").and_then(|v| v.as_array())
+                .map(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect::<Vec<_>>())
+                .filter(|v| !v.is_empty())
+                .ok_or_else(|| ToolError::InvalidParams("\"ids\" (non-empty array) is required for action=docker_update_containers.".to_string()))?;
+            svc!(state.service.docker_update_containers(&ids))
+        }
+        "docker_update_all_containers" => svc!(state.service.docker_update_all_containers()),
 
         "status" => {
             let snap = state.counters.snapshot();

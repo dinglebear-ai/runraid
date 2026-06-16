@@ -208,6 +208,13 @@ pub mod testing {
                         "title": "T", "subject": "S", "description": "D", "importance": "INFO"
                     }),
                     n if n.starts_with("vm_") => json!({ "action": name, "id": "vm-win11" }),
+                    "docker_update_all_containers" => json!({ "action": name }),
+                    "docker_update_containers" => {
+                        json!({ "action": name, "ids": ["docker/abc123"] })
+                    }
+                    n if n.starts_with("docker_") => {
+                        json!({ "action": name, "id": "docker/abc123" })
+                    }
                     _ => json!({ "action": name }),
                 };
                 (name, args)

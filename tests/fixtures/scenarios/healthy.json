@@ -1552,5 +1552,123 @@
     "vm": {
       "reset": true
     }
+  },
+  "docker_start": {
+    "docker": {
+      "start": {
+        "id": "docker/abc123",
+        "names": [
+          "plex"
+        ],
+        "image": "lscr.io/linuxserver/plex:latest",
+        "state": "RUNNING",
+        "status": "Up 3 seconds"
+      }
+    }
+  },
+  "docker_stop": {
+    "docker": {
+      "stop": {
+        "id": "docker/abc123",
+        "names": [
+          "plex"
+        ],
+        "image": "lscr.io/linuxserver/plex:latest",
+        "state": "EXITED",
+        "status": "Exited (0) 1 second ago"
+      }
+    }
+  },
+  "docker_pause": {
+    "docker": {
+      "pause": {
+        "id": "docker/abc123",
+        "names": [
+          "plex"
+        ],
+        "image": "lscr.io/linuxserver/plex:latest",
+        "state": "PAUSED",
+        "status": "Up 5 minutes (Paused)"
+      }
+    }
+  },
+  "docker_unpause": {
+    "docker": {
+      "unpause": {
+        "id": "docker/abc123",
+        "names": [
+          "plex"
+        ],
+        "image": "lscr.io/linuxserver/plex:latest",
+        "state": "RUNNING",
+        "status": "Up 5 minutes"
+      }
+    }
+  },
+  "docker_remove_container": {
+    "docker": {
+      "removeContainer": true
+    }
+  },
+  "docker_update_container": {
+    "docker": {
+      "updateContainer": {
+        "id": "docker/abc123",
+        "names": [
+          "plex"
+        ],
+        "image": "lscr.io/linuxserver/plex:latest",
+        "state": "RUNNING",
+        "status": "Up 2 seconds"
+      }
+    }
+  },
+  "docker_update_containers": {
+    "docker": {
+      "updateContainers": [
+        {
+          "id": "docker/abc123",
+          "names": [
+            "plex"
+          ],
+          "image": "lscr.io/linuxserver/plex:latest",
+          "state": "RUNNING",
+          "status": "Up 2 seconds"
+        },
+        {
+          "id": "docker/def456",
+          "names": [
+            "sonarr"
+          ],
+          "image": "lscr.io/linuxserver/sonarr:latest",
+          "state": "RUNNING",
+          "status": "Up 1 second"
+        }
+      ]
+    }
+  },
+  "docker_update_all_containers": {
+    "docker": {
+      "updateAllContainers": [
+        {
+          "id": "docker/abc123",
+          "names": [
+            "plex"
+          ],
+          "image": "lscr.io/linuxserver/plex:latest",
+          "state": "RUNNING",
+          "status": "Up 2 seconds"
+        },
+        {
+          "id": "docker/def456",
+          "names": [
+            "sonarr"
+          ],
+          "image": "lscr.io/linuxserver/sonarr:latest",
+          "state": "RUNNING",
+          "status": "Up 1 second"
+        }
+      ]
+    }
   }
 }

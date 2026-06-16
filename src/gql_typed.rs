@@ -1174,6 +1174,208 @@ pub struct VmResetNs {
     pub reset: bool,
 }
 
+// ── mutations: docker namespace ──────────────────────────────────────────────
+//
+// Requires the ContainerState enum (add near the other gql_enum! calls):
+//   gql_enum!(ContainerState { Running, Paused, Exited });
+
+/// Partial selection of `DockerContainer` returned by the lifecycle mutations.
+/// Sub-struct: derives QueryFragment + Serialize only (cynic provides Deserialize).
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "DockerContainer")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerContainerRef {
+    pub id: PrefixedID,
+    pub names: Vec<String>,
+    pub image: String,
+    pub state: ContainerState,
+    pub status: String,
+}
+
+// ---- Variables -------------------------------------------------------------
+
+/// Single-id arg shared by start/stop/pause/unpause/updateContainer.
+#[derive(cynic::QueryVariables)]
+pub struct DockerIdVars {
+    pub id: PrefixedID,
+}
+
+/// removeContainer(id, withImage): id required, withImage nullable Boolean.
+#[derive(cynic::QueryVariables)]
+pub struct DockerRemoveVars {
+    pub id: PrefixedID,
+    pub with_image: Option<bool>,
+}
+
+/// updateContainers(ids: [PrefixedID!]!).
+#[derive(cynic::QueryVariables)]
+pub struct DockerIdsVars {
+    pub ids: Vec<PrefixedID>,
+}
+
+// ---- start -----------------------------------------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "DockerIdVars")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerStartMutation {
+    pub docker: DockerStartNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "DockerMutations",
+    variables = "DockerIdVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct DockerStartNs {
+    #[arguments(id: $id)]
+    pub start: DockerContainerRef,
+}
+
+// ---- stop ------------------------------------------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "DockerIdVars")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerStopMutation {
+    pub docker: DockerStopNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "DockerMutations",
+    variables = "DockerIdVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct DockerStopNs {
+    #[arguments(id: $id)]
+    pub stop: DockerContainerRef,
+}
+
+// ---- pause -----------------------------------------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "DockerIdVars")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerPauseMutation {
+    pub docker: DockerPauseNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "DockerMutations",
+    variables = "DockerIdVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct DockerPauseNs {
+    #[arguments(id: $id)]
+    pub pause: DockerContainerRef,
+}
+
+// ---- unpause ---------------------------------------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "DockerIdVars")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerUnpauseMutation {
+    pub docker: DockerUnpauseNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "DockerMutations",
+    variables = "DockerIdVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct DockerUnpauseNs {
+    #[arguments(id: $id)]
+    pub unpause: DockerContainerRef,
+}
+
+// ---- removeContainer(id, withImage) -> Boolean! ----------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "DockerRemoveVars")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerRemoveContainerMutation {
+    pub docker: DockerRemoveContainerNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "DockerMutations",
+    variables = "DockerRemoveVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct DockerRemoveContainerNs {
+    #[arguments(id: $id, withImage: $with_image)]
+    pub remove_container: bool,
+}
+
+// ---- updateContainer(id) -> DockerContainer! -------------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "DockerIdVars")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerUpdateContainerMutation {
+    pub docker: DockerUpdateContainerNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "DockerMutations",
+    variables = "DockerIdVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct DockerUpdateContainerNs {
+    #[arguments(id: $id)]
+    pub update_container: DockerContainerRef,
+}
+
+// ---- updateContainers(ids) -> [DockerContainer!]! --------------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", variables = "DockerIdsVars")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerUpdateContainersMutation {
+    pub docker: DockerUpdateContainersNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "DockerMutations",
+    variables = "DockerIdsVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct DockerUpdateContainersNs {
+    #[arguments(ids: $ids)]
+    pub update_containers: Vec<DockerContainerRef>,
+}
+
+// ---- updateAllContainers -> [DockerContainer!]! (no args) ------------------
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerUpdateAllContainersMutation {
+    pub docker: DockerUpdateAllContainersNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "DockerMutations", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerUpdateAllContainersNs {
+    pub update_all_containers: Vec<DockerContainerRef>,
+}
+
 // ── enums (cynic checks them vs the SDL; serde does the JSON round-trip) ──────
 
 macro_rules! gql_enum {
@@ -1319,3 +1521,10 @@ gql_enum!(NotificationImportance {
     Warning
 });
 gql_enum!(NotificationType { Unread, Archive });
+
+// Docker mutation enum (docker mutation batch).
+gql_enum!(ContainerState {
+    Running,
+    Paused,
+    Exited
+});
