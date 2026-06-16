@@ -636,6 +636,100 @@ async fn dispatch_action(state: &AppState, action: &str, args: &Value) -> Result
         }
         "onboarding_complete_onboarding" => svc!(state.service.onboarding_complete_onboarding()),
         "onboarding_reset_onboarding" => svc!(state.service.onboarding_reset_onboarding()),
+        "archive_notifications" => {
+            let ids = args
+                .get("ids")
+                .and_then(|v| v.as_array())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|x| x.as_str().map(String::from))
+                        .collect::<Vec<_>>()
+                })
+                .filter(|v| !v.is_empty())
+                .ok_or_else(|| {
+                    ToolError::InvalidParams(
+                        "\"ids\" (non-empty array) is required for action=archive_notifications."
+                            .to_string(),
+                    )
+                })?;
+            svc!(state.service.archive_notifications(&ids))
+        }
+        "unarchive_notifications" => {
+            let ids = args
+                .get("ids")
+                .and_then(|v| v.as_array())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|x| x.as_str().map(String::from))
+                        .collect::<Vec<_>>()
+                })
+                .filter(|v| !v.is_empty())
+                .ok_or_else(|| {
+                    ToolError::InvalidParams(
+                        "\"ids\" (non-empty array) is required for action=unarchive_notifications."
+                            .to_string(),
+                    )
+                })?;
+            svc!(state.service.unarchive_notifications(&ids))
+        }
+        "unread_notification" => {
+            let id = require_id(args, "unread_notification")?;
+            svc!(state.service.unread_notification(&id))
+        }
+        "archive_all" => svc!(state
+            .service
+            .archive_all(string_arg(args, "importance").as_deref())),
+        "unarchive_all" => svc!(state
+            .service
+            .unarchive_all(string_arg(args, "importance").as_deref())),
+        "update_server_identity" => {
+            let name = string_arg(args, "name").ok_or_else(|| {
+                ToolError::InvalidParams(
+                    "\"name\" is required for action=update_server_identity.".to_string(),
+                )
+            })?;
+            svc!(state.service.update_server_identity(
+                &name,
+                string_arg(args, "comment").as_deref(),
+                string_arg(args, "sys_model").as_deref()
+            ))
+        }
+        "configure_ups" => {
+            let config = args
+                .get("config")
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!({}));
+            svc!(state.service.configure_ups(config))
+        }
+        "update_system_time" => {
+            let input = args
+                .get("input")
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!({}));
+            svc!(state.service.update_system_time(input))
+        }
+        "update_temperature_config" => {
+            let input = args
+                .get("input")
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!({}));
+            svc!(state.service.update_temperature_config(input))
+        }
+        "add_plugin" => {
+            let input = args
+                .get("input")
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!({}));
+            svc!(state.service.add_plugin(input))
+        }
+        "remove_plugin" => {
+            let input = args
+                .get("input")
+                .cloned()
+                .unwrap_or_else(|| serde_json::json!({}));
+            svc!(state.service.remove_plugin(input))
+        }
+        "connect_sign_out" => svc!(state.service.connect_sign_out()),
 
         "status" => {
             let snap = state.counters.snapshot();

@@ -154,6 +154,17 @@ impl CliCommand {
             }
             ["onboarding-complete"] => Self::OnboardingComplete,
             ["onboarding-reset"] => Self::OnboardingReset,
+            ["archive-notifications", ids @ ..] if !ids.is_empty() => {
+                Self::ArchiveNotifications(ids.iter().map(|s| s.to_string()).collect())
+            }
+            ["unarchive-notifications", ids @ ..] if !ids.is_empty() => {
+                Self::UnarchiveNotifications(ids.iter().map(|s| s.to_string()).collect())
+            }
+            ["unread-notification", id] => Self::UnreadNotification(id.to_string()),
+            ["archive-all", rest @ ..] => Self::ArchiveAll(rest.first().map(|s| s.to_string())),
+            ["unarchive-all", rest @ ..] => Self::UnarchiveAll(rest.first().map(|s| s.to_string())),
+            ["update-server-identity", name] => Self::UpdateServerIdentity(name.to_string()),
+            ["connect-sign-out"] => Self::ConnectSignOut,
             ["doctor"] => Self::Doctor,
             ["setup", "check"] => Self::Setup(SetupCommand::Check),
             ["setup", "repair"] => Self::Setup(SetupCommand::Repair),

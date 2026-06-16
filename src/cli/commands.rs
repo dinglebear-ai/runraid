@@ -113,6 +113,13 @@ pub enum CliCommand {
     UnraidPluginsInstallLanguage(String),
     OnboardingComplete,
     OnboardingReset,
+    ArchiveNotifications(Vec<String>),
+    UnarchiveNotifications(Vec<String>),
+    UnreadNotification(String),
+    ArchiveAll(Option<String>),
+    UnarchiveAll(Option<String>),
+    UpdateServerIdentity(String),
+    ConnectSignOut,
     Doctor,
     Setup(SetupCommand),
 }

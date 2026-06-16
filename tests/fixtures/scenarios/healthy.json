@@ -1866,5 +1866,115 @@
         "completed": false
       }
     }
+  },
+  "archive_notifications": {
+    "archiveNotifications": {
+      "unread": {
+        "info": 1,
+        "warning": 0,
+        "alert": 0,
+        "total": 1
+      },
+      "archive": {
+        "info": 14,
+        "warning": 2,
+        "alert": 0,
+        "total": 16
+      }
+    }
+  },
+  "unarchive_notifications": {
+    "unarchiveNotifications": {
+      "unread": {
+        "info": 1,
+        "warning": 0,
+        "alert": 0,
+        "total": 1
+      },
+      "archive": {
+        "info": 14,
+        "warning": 2,
+        "alert": 0,
+        "total": 16
+      }
+    }
+  },
+  "unread_notification": {
+    "unreadNotification": {
+      "id": "ntf-1",
+      "title": "Test notification",
+      "subject": "Created via API",
+      "description": "A notification created through the MCP write API.",
+      "importance": "INFO",
+      "link": null,
+      "type": "UNREAD",
+      "timestamp": "2026-06-15T18:00:00.000Z",
+      "formattedTimestamp": "Jun 15, 2026 18:00"
+    }
+  },
+  "archive_all": {
+    "archiveAll": {
+      "unread": {
+        "info": 0,
+        "warning": 0,
+        "alert": 0,
+        "total": 0
+      },
+      "archive": {
+        "info": 15,
+        "warning": 2,
+        "alert": 0,
+        "total": 17
+      }
+    }
+  },
+  "unarchive_all": {
+    "unarchiveAll": {
+      "unread": {
+        "info": 15,
+        "warning": 2,
+        "alert": 0,
+        "total": 17
+      },
+      "archive": {
+        "info": 0,
+        "warning": 0,
+        "alert": 0,
+        "total": 0
+      }
+    }
+  },
+  "update_server_identity": {
+    "updateServerIdentity": {
+      "id": "server-1",
+      "name": "Tower",
+      "status": "ONLINE"
+    }
+  },
+  "configure_ups": {
+    "configureUps": true
+  },
+  "update_system_time": {
+    "updateSystemTime": {
+      "currentTime": "2026-06-15T18:00:00.000Z",
+      "timeZone": "America/New_York",
+      "useNtp": true,
+      "ntpServers": [
+        "time.cloudflare.com",
+        "pool.ntp.org"
+      ]
+    }
+  },
+  "update_temperature_config": {
+    "updateTemperatureConfig": true
+  },
+  "add_plugin": {
+    "addPlugin": true
+  },
+  "remove_plugin": {
+    "removePlugin": true
+  },
+  "connect_sign_out": {
+    "connectSignOut": true
   }
 }

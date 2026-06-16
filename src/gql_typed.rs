@@ -1980,6 +1980,329 @@ pub struct OnboardingResetNs {
     pub reset_onboarding: OnboardingRef,
 }
 
+// ── mutations: direct (system / connect / notifications) ──
+
+// UPS config enums (configureUps batch).
+
+// Temperature unit (updateTemperatureConfig batch).
+
+// ── configureUps ──────────────────────────────────────────────────────────────
+// SDL fields are camelCase → cynic default mapping is correct.
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+pub struct UPSConfigInput {
+    pub service: Option<UpsServiceState>,
+    pub ups_cable: Option<UpsCableType>,
+    pub custom_ups_cable: Option<String>,
+    pub ups_type: Option<UpsType>,
+    pub device: Option<String>,
+    pub override_ups_capacity: Option<i32>,
+    pub battery_level: Option<i32>,
+    pub minutes: Option<i32>,
+    pub timeout: Option<i32>,
+    pub kill_ups: Option<UpsKillPower>,
+}
+
+// ── updateSystemTime ──────────────────────────────────────────────────────────
+// SDL fields camelCase → default mapping.
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+pub struct UpdateSystemTimeInput {
+    pub time_zone: Option<String>,
+    pub use_ntp: Option<bool>,
+    pub ntp_servers: Option<Vec<String>>, // [String!]
+    pub manual_date_time: Option<String>,
+}
+
+// ── updateTemperatureConfig ───────────────────────────────────────────────────
+// SDL fields are snake_case → must override mapping.
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+#[cynic(rename_all = "snake_case")]
+pub struct TemperatureConfigInput {
+    pub enabled: Option<bool>,
+    pub polling_interval: Option<i32>,
+    pub default_unit: Option<TemperatureUnit>,
+    pub sensors: Option<TemperatureSensorsConfigInput>,
+    pub thresholds: Option<TemperatureThresholdsConfigInput>,
+    pub history: Option<TemperatureHistoryConfigInput>,
+}
+
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+#[cynic(rename_all = "snake_case")]
+pub struct TemperatureSensorsConfigInput {
+    pub lm_sensors: Option<LmSensorsConfigInput>,
+    pub smartctl: Option<SensorConfigInput>,
+    pub ipmi: Option<IpmiConfigInput>,
+}
+
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+#[cynic(rename_all = "snake_case")]
+pub struct LmSensorsConfigInput {
+    pub enabled: Option<bool>,
+    pub config_path: Option<String>,
+}
+
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+pub struct SensorConfigInput {
+    pub enabled: Option<bool>,
+}
+
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+#[cynic(rename_all = "snake_case")]
+pub struct IpmiConfigInput {
+    pub enabled: Option<bool>,
+    pub args: Option<Vec<String>>, // [String!]
+}
+
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+#[cynic(rename_all = "snake_case")]
+pub struct TemperatureThresholdsConfigInput {
+    pub cpu_warning: Option<i32>,
+    pub cpu_critical: Option<i32>,
+    pub disk_warning: Option<i32>,
+    pub disk_critical: Option<i32>,
+    pub warning: Option<i32>,
+    pub critical: Option<i32>,
+}
+
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+#[cynic(rename_all = "snake_case")]
+pub struct TemperatureHistoryConfigInput {
+    pub max_readings: Option<i32>,
+    pub retention_ms: Option<i32>,
+}
+
+// ── addPlugin / removePlugin ──────────────────────────────────────────────────
+// SDL has required fields with defaults; required → non-Option.
+#[derive(cynic::InputObject, Debug, Clone, serde::Deserialize)]
+pub struct PluginManagementInput {
+    pub names: Vec<String>, // [String!]!
+    pub bundled: bool,      // Boolean! = false
+    pub restart: bool,      // Boolean! = true
+}
+
+// updateServerIdentity returns Server! — model a minimal selection.
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Server")]
+#[serde(rename_all = "camelCase")]
+pub struct ServerRef {
+    pub id: PrefixedID,
+    pub name: String,
+    pub status: ServerStatus,
+}
+
+#[derive(cynic::QueryVariables)]
+pub struct NotificationIdsVars {
+    // shared with unarchive_notifications
+    pub ids: Vec<PrefixedID>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "NotificationIdsVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ArchiveNotificationsMutation {
+    #[arguments(ids: $ids)]
+    pub archive_notifications: NotificationOverview,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "NotificationIdsVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct UnarchiveNotificationsMutation {
+    #[arguments(ids: $ids)]
+    pub unarchive_notifications: NotificationOverview,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "PrefixedIdVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct UnreadNotificationMutation {
+    #[arguments(id: $id)]
+    pub unread_notification: Notification,
+}
+
+#[derive(cynic::QueryVariables)]
+pub struct NotificationImportanceVars {
+    // shared with unarchive_all
+    pub importance: Option<NotificationImportance>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "NotificationImportanceVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ArchiveAllMutation {
+    #[arguments(importance: $importance)]
+    pub archive_all: NotificationOverview,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "NotificationImportanceVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct UnarchiveAllMutation {
+    #[arguments(importance: $importance)]
+    pub unarchive_all: NotificationOverview,
+}
+
+#[derive(cynic::QueryVariables)]
+pub struct UpdateServerIdentityVars {
+    pub name: String,
+    pub comment: Option<String>,
+    pub sys_model: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "UpdateServerIdentityVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateServerIdentityMutation {
+    #[arguments(name: $name, comment: $comment, sysModel: $sys_model)]
+    pub update_server_identity: ServerRef,
+}
+
+#[derive(cynic::QueryVariables)]
+pub struct ConfigureUpsVars {
+    pub config: UPSConfigInput,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "ConfigureUpsVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct ConfigureUpsMutation {
+    #[arguments(config: $config)]
+    pub configure_ups: bool,
+}
+
+#[derive(cynic::QueryVariables)]
+pub struct UpdateSystemTimeVars {
+    pub input: UpdateSystemTimeInput,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "UpdateSystemTimeVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateSystemTimeMutation {
+    #[arguments(input: $input)]
+    pub update_system_time: SystemTime,
+}
+
+#[derive(cynic::QueryVariables)]
+pub struct UpdateTemperatureConfigVars {
+    pub input: TemperatureConfigInput,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "UpdateTemperatureConfigVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateTemperatureConfigMutation {
+    #[arguments(input: $input)]
+    pub update_temperature_config: bool,
+}
+
+#[derive(cynic::QueryVariables)]
+pub struct PluginManagementVars {
+    // shared with remove_plugin
+    pub input: PluginManagementInput,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "PluginManagementVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct AddPluginMutation {
+    #[arguments(input: $input)]
+    pub add_plugin: bool,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Mutation",
+    variables = "PluginManagementVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct RemovePluginMutation {
+    #[arguments(input: $input)]
+    pub remove_plugin: bool,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Mutation", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ConnectSignOutMutation {
+    pub connect_sign_out: bool,
+}
+
+// UPS config enums (configureUps batch) — hand-written for graphql_type (SDL uses UPS*).
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cynic(graphql_type = "UPSServiceState")]
+pub enum UpsServiceState {
+    Enable,
+    Disable,
+}
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cynic(graphql_type = "UPSCableType")]
+pub enum UpsCableType {
+    Usb,
+    Simple,
+    Smart,
+    Ether,
+    Custom,
+}
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[allow(clippy::enum_variant_names)]
+#[cynic(graphql_type = "UPSType")]
+pub enum UpsType {
+    Usb,
+    Apcsmart,
+    Net,
+    Snmp,
+    Dumb,
+    Pcnet,
+    Modbus,
+}
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cynic(graphql_type = "UPSKillPower")]
+pub enum UpsKillPower {
+    Yes,
+    No,
+}
+
 // ── enums (cynic checks them vs the SDL; serde does the JSON round-trip) ──────
 
 macro_rules! gql_enum {
@@ -2135,3 +2458,11 @@ gql_enum!(ContainerState {
 
 // Array input enum (array mutation batch).
 gql_enum!(ArrayStateInputState { Start, Stop });
+
+// Direct-mutation enums (UPS config + temperature unit).
+gql_enum!(TemperatureUnit {
+    Celsius,
+    Fahrenheit,
+    Kelvin,
+    Rankine
+});

@@ -28,6 +28,16 @@ pub enum UpstreamError {
     Other(String),
 }
 
+/// Parse an importance string into the typed enum (optional).
+fn parse_importance(v: Option<&str>) -> Result<Option<crate::gql_typed::NotificationImportance>> {
+    match v {
+        None => Ok(None),
+        Some(s) => serde_json::from_value(serde_json::json!(s))
+            .map(Some)
+            .map_err(|e| UpstreamError::Other(format!("invalid importance `{s}`: {e}")).into()),
+    }
+}
+
 /// Parse role-name strings into the typed `Role` enum list (GraphQL SCREAMING_SNAKE).
 fn parse_role(role: &str) -> Result<crate::gql_typed::Role> {
     serde_json::from_value(serde_json::json!(role))
@@ -912,6 +922,131 @@ impl UnraidClient {
     pub async fn onboarding_reset_onboarding(&self) -> Result<Value> {
         use cynic::MutationBuilder;
         self.run_typed(crate::gql_typed::OnboardingResetMutation::build(()))
+            .await
+    }
+
+    pub async fn archive_notifications(&self, ids: &[String]) -> Result<Value> {
+        use crate::gql_typed::{ArchiveNotificationsMutation, NotificationIdsVars, PrefixedID};
+        use cynic::MutationBuilder;
+        let ids = ids.iter().map(|i| PrefixedID(i.clone())).collect();
+        self.run_typed(ArchiveNotificationsMutation::build(NotificationIdsVars {
+            ids,
+        }))
+        .await
+    }
+
+    pub async fn unarchive_notifications(&self, ids: &[String]) -> Result<Value> {
+        use crate::gql_typed::{NotificationIdsVars, PrefixedID, UnarchiveNotificationsMutation};
+        use cynic::MutationBuilder;
+        let ids = ids.iter().map(|i| PrefixedID(i.clone())).collect();
+        self.run_typed(UnarchiveNotificationsMutation::build(NotificationIdsVars {
+            ids,
+        }))
+        .await
+    }
+
+    pub async fn unread_notification(&self, id: &str) -> Result<Value> {
+        use crate::gql_typed::{PrefixedID, PrefixedIdVars, UnreadNotificationMutation};
+        use cynic::MutationBuilder;
+        self.run_typed(UnreadNotificationMutation::build(PrefixedIdVars {
+            id: PrefixedID(id.to_string()),
+        }))
+        .await
+    }
+
+    pub async fn archive_all(&self, importance: Option<&str>) -> Result<Value> {
+        use crate::gql_typed::{ArchiveAllMutation, NotificationImportanceVars};
+        use cynic::MutationBuilder;
+        let importance = parse_importance(importance)?;
+        self.run_typed(ArchiveAllMutation::build(NotificationImportanceVars {
+            importance,
+        }))
+        .await
+    }
+
+    pub async fn unarchive_all(&self, importance: Option<&str>) -> Result<Value> {
+        use crate::gql_typed::{NotificationImportanceVars, UnarchiveAllMutation};
+        use cynic::MutationBuilder;
+        let importance = parse_importance(importance)?;
+        self.run_typed(UnarchiveAllMutation::build(NotificationImportanceVars {
+            importance,
+        }))
+        .await
+    }
+
+    pub async fn update_server_identity(
+        &self,
+        name: &str,
+        comment: Option<&str>,
+        sys_model: Option<&str>,
+    ) -> Result<Value> {
+        use crate::gql_typed::{UpdateServerIdentityMutation, UpdateServerIdentityVars};
+        use cynic::MutationBuilder;
+        let vars = UpdateServerIdentityVars {
+            name: name.to_string(),
+            comment: comment.map(|s| s.to_string()),
+            sys_model: sys_model.map(|s| s.to_string()),
+        };
+        self.run_typed(UpdateServerIdentityMutation::build(vars))
+            .await
+    }
+
+    pub async fn configure_ups(&self, config: Value) -> Result<Value> {
+        use crate::gql_typed::{ConfigureUpsMutation, ConfigureUpsVars, UPSConfigInput};
+        use cynic::MutationBuilder;
+        let config: UPSConfigInput = serde_json::from_value(config)
+            .map_err(|e| UpstreamError::Other(format!("invalid UPS config: {e}")))?;
+        self.run_typed(ConfigureUpsMutation::build(ConfigureUpsVars { config }))
+            .await
+    }
+
+    pub async fn update_system_time(&self, input: Value) -> Result<Value> {
+        use crate::gql_typed::{
+            UpdateSystemTimeInput, UpdateSystemTimeMutation, UpdateSystemTimeVars,
+        };
+        use cynic::MutationBuilder;
+        let input: UpdateSystemTimeInput = serde_json::from_value(input)
+            .map_err(|e| UpstreamError::Other(format!("invalid system time input: {e}")))?;
+        self.run_typed(UpdateSystemTimeMutation::build(UpdateSystemTimeVars {
+            input,
+        }))
+        .await
+    }
+
+    pub async fn update_temperature_config(&self, input: Value) -> Result<Value> {
+        use crate::gql_typed::{
+            TemperatureConfigInput, UpdateTemperatureConfigMutation, UpdateTemperatureConfigVars,
+        };
+        use cynic::MutationBuilder;
+        let input: TemperatureConfigInput = serde_json::from_value(input)
+            .map_err(|e| UpstreamError::Other(format!("invalid temperature config: {e}")))?;
+        self.run_typed(UpdateTemperatureConfigMutation::build(
+            UpdateTemperatureConfigVars { input },
+        ))
+        .await
+    }
+
+    pub async fn add_plugin(&self, input: Value) -> Result<Value> {
+        use crate::gql_typed::{AddPluginMutation, PluginManagementInput, PluginManagementVars};
+        use cynic::MutationBuilder;
+        let input: PluginManagementInput = serde_json::from_value(input)
+            .map_err(|e| UpstreamError::Other(format!("invalid plugin input: {e}")))?;
+        self.run_typed(AddPluginMutation::build(PluginManagementVars { input }))
+            .await
+    }
+
+    pub async fn remove_plugin(&self, input: Value) -> Result<Value> {
+        use crate::gql_typed::{PluginManagementInput, PluginManagementVars, RemovePluginMutation};
+        use cynic::MutationBuilder;
+        let input: PluginManagementInput = serde_json::from_value(input)
+            .map_err(|e| UpstreamError::Other(format!("invalid plugin input: {e}")))?;
+        self.run_typed(RemovePluginMutation::build(PluginManagementVars { input }))
+            .await
+    }
+
+    pub async fn connect_sign_out(&self) -> Result<Value> {
+        use cynic::MutationBuilder;
+        self.run_typed(crate::gql_typed::ConnectSignOutMutation::build(()))
             .await
     }
 

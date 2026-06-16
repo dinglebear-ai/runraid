@@ -1,3 +1,4 @@
+#![recursion_limit = "512"]
 pub mod app;
 pub mod config;
 pub mod graphql;
@@ -231,6 +232,15 @@ pub mod testing {
                     n if n.starts_with("unraid_plugins_install_") => {
                         json!({ "action": name, "url": "https://example.com/p.plg" })
                     }
+                    "archive_notifications" | "unarchive_notifications" => {
+                        json!({ "action": name, "ids": ["ntf-1"] })
+                    }
+                    "unread_notification" => json!({ "action": name, "id": "ntf-1" }),
+                    "update_server_identity" => json!({ "action": name, "name": "Tower" }),
+                    "add_plugin" | "remove_plugin" => json!({
+                        "action": name,
+                        "input": { "names": ["my.plugin"], "bundled": false, "restart": true }
+                    }),
                     _ => json!({ "action": name }),
                 };
                 (name, args)

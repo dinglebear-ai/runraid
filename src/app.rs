@@ -442,6 +442,49 @@ impl UnraidService {
     pub async fn onboarding_reset_onboarding(&self) -> Result<Value> {
         self.client.onboarding_reset_onboarding().await
     }
+    pub async fn archive_notifications(&self, ids: &[String]) -> Result<Value> {
+        self.client.archive_notifications(ids).await
+    }
+    pub async fn unarchive_notifications(&self, ids: &[String]) -> Result<Value> {
+        self.client.unarchive_notifications(ids).await
+    }
+    pub async fn unread_notification(&self, id: &str) -> Result<Value> {
+        self.client.unread_notification(id).await
+    }
+    pub async fn archive_all(&self, importance: Option<&str>) -> Result<Value> {
+        self.client.archive_all(importance).await
+    }
+    pub async fn unarchive_all(&self, importance: Option<&str>) -> Result<Value> {
+        self.client.unarchive_all(importance).await
+    }
+    pub async fn update_server_identity(
+        &self,
+        name: &str,
+        comment: Option<&str>,
+        sys_model: Option<&str>,
+    ) -> Result<Value> {
+        self.client
+            .update_server_identity(name, comment, sys_model)
+            .await
+    }
+    pub async fn configure_ups(&self, config: Value) -> Result<Value> {
+        self.client.configure_ups(config).await
+    }
+    pub async fn update_system_time(&self, input: Value) -> Result<Value> {
+        self.client.update_system_time(input).await
+    }
+    pub async fn update_temperature_config(&self, input: Value) -> Result<Value> {
+        self.client.update_temperature_config(input).await
+    }
+    pub async fn add_plugin(&self, input: Value) -> Result<Value> {
+        self.client.add_plugin(input).await
+    }
+    pub async fn remove_plugin(&self, input: Value) -> Result<Value> {
+        self.client.remove_plugin(input).await
+    }
+    pub async fn connect_sign_out(&self) -> Result<Value> {
+        self.client.connect_sign_out().await
+    }
 
     pub async fn rclone(&self) -> Result<Value> {
         self.client.rclone().await

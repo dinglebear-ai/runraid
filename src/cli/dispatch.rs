@@ -242,6 +242,28 @@ pub async fn run(service: &UnraidService, cmd: CliCommand, json: bool) -> Result
             "onboarding_reset_onboarding",
             service.onboarding_reset_onboarding().await?,
         ),
+        CliCommand::ArchiveNotifications(ids) => (
+            "archive_notifications",
+            service.archive_notifications(&ids).await?,
+        ),
+        CliCommand::UnarchiveNotifications(ids) => (
+            "unarchive_notifications",
+            service.unarchive_notifications(&ids).await?,
+        ),
+        CliCommand::UnreadNotification(id) => (
+            "unread_notification",
+            service.unread_notification(&id).await?,
+        ),
+        CliCommand::ArchiveAll(imp) => ("archive_all", service.archive_all(imp.as_deref()).await?),
+        CliCommand::UnarchiveAll(imp) => (
+            "unarchive_all",
+            service.unarchive_all(imp.as_deref()).await?,
+        ),
+        CliCommand::UpdateServerIdentity(name) => (
+            "update_server_identity",
+            service.update_server_identity(&name, None, None).await?,
+        ),
+        CliCommand::ConnectSignOut => ("connect_sign_out", service.connect_sign_out().await?),
         // Doctor and setup are intercepted in main.rs before reaching dispatch.
         CliCommand::Doctor | CliCommand::Setup(_) => {
             unreachable!("doctor/setup are handled before service construction")

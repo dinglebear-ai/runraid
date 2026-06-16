@@ -423,6 +423,54 @@ pub(super) const ACTIONS: &[ActionSpec] = &[
         scope: Scope::Write,
     },
     ActionSpec {
+        name: "archive_notifications",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "unarchive_notifications",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "unread_notification",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "archive_all",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "unarchive_all",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "update_server_identity",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "configure_ups",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "update_system_time",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "update_temperature_config",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "add_plugin",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "remove_plugin",
+        scope: Scope::Write,
+    },
+    ActionSpec {
+        name: "connect_sign_out",
+        scope: Scope::Write,
+    },
+    ActionSpec {
         name: "status",
         scope: Scope::Read,
     },
@@ -533,7 +581,11 @@ pub(super) fn tool_definitions() -> Vec<Value> {
                 "url": { "type": "string", "description": "Plugin .plg URL (unraid_plugins_install_*)." },
                 "forced": { "type": "boolean", "description": "Force install (unraid_plugins_install_*)." },
                 "type": { "type": "string", "description": "RClone remote type (rclone_create_r_clone_remote)." },
-                "parameters": { "type": "object", "description": "RClone remote parameters JSON (rclone_create_r_clone_remote)." }
+                "parameters": { "type": "object", "description": "RClone remote parameters JSON (rclone_create_r_clone_remote)." },
+                "comment": { "type": "string", "description": "Server comment (update_server_identity)." },
+                "sys_model": { "type": "string", "description": "Server model (update_server_identity)." },
+                "config": { "type": "object", "description": "UPS config object (configure_ups)." },
+                "input": { "type": "object", "description": "Input object for update_system_time / update_temperature_config / add_plugin / remove_plugin." }
             },
             "required": ["action"]
         }
