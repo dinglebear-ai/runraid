@@ -36,6 +36,11 @@ pub struct DateTime(pub String);
 #[cynic(graphql_type = "JSON")]
 pub struct Json(pub serde_json::Value);
 
+/// `URL` scalar — arrives as a JSON string.
+#[derive(cynic::Scalar, Clone, Debug)]
+#[cynic(graphql_type = "URL")]
+pub struct Url(pub String);
+
 // ── flash ────────────────────────────────────────────────────────────────────
 
 #[derive(cynic::QueryFragment, serde::Serialize)]
@@ -2303,6 +2308,821 @@ pub enum UpsKillPower {
     No,
 }
 
+// ── original read queries migrated to cynic ──
+
+// from orig_disks
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct DisksReadQuery {
+    pub disks: Vec<DiskRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Disk", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct DiskRead {
+    pub id: PrefixedID,
+    pub device: String,
+    #[cynic(rename = "type")]
+    pub r#type: String,
+    pub name: String,
+    pub vendor: String,
+    pub size: f64, // SDL Float! → number (NOT BigInt)
+    pub serial_num: String,
+    pub interface_type: DiskInterfaceType,
+    pub smart_status: DiskSmartStatus,
+    pub temperature: Option<f64>, // SDL Float (nullable)
+    pub is_spinning: bool,
+    pub partitions: Vec<DiskPartitionRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "DiskPartition", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct DiskPartitionRead {
+    pub name: String,
+    pub fs_type: DiskFsType,
+    pub size: f64, // SDL Float! → number
+}
+
+// from orig_disks
+// ── new scalar (add with BigInt/PrefixedID/DateTime/Json) ────────────────────
+/// SDL `Port` — a 0..65535 int; delivered/emitted as a JSON number.
+#[derive(cynic::Scalar, Clone, Debug)]
+pub struct Port(pub i32);
+
+// ── new enum (add near the other gql_enum! calls) ────────────────────────────
+
+// ── docker ───────────────────────────────────────────────────────────────────
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerReadQuery {
+    pub docker: DockerRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Docker", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerRead {
+    pub containers: Vec<DockerReadContainer>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "DockerContainer", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerReadContainer {
+    pub id: PrefixedID,
+    pub names: Vec<String>,
+    pub image: String,
+    pub state: ContainerState,
+    pub status: String,
+    pub auto_start: bool,                  // autoStart: Boolean!
+    pub auto_start_order: Option<i32>,     // autoStartOrder: Int (nullable)
+    pub ports: Vec<ContainerPortRead>,     // ports: [ContainerPort!]!
+    pub web_ui_url: Option<String>,        // webUiUrl: String
+    pub icon_url: Option<String>,          // iconUrl: String
+    pub is_orphaned: bool,                 // isOrphaned: Boolean!
+    pub is_update_available: Option<bool>, // isUpdateAvailable: Boolean (nullable)
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "ContainerPort", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ContainerPortRead {
+    pub private_port: Option<Port>, // privatePort: Port (nullable)
+    pub public_port: Option<Port>,  // publicPort: Port (nullable)
+    #[cynic(rename = "type")]
+    pub r#type: ContainerPortType, // type: ContainerPortType!
+    pub ip: Option<String>,         // ip: String (nullable)
+}
+
+// from orig_disks
+#[derive(cynic::QueryVariables)]
+pub struct DockerLogsVars {
+    pub id: PrefixedID,
+    pub tail: Option<i32>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", variables = "DockerLogsVars")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerLogsReadQuery {
+    pub docker: DockerLogsNs,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Docker",
+    variables = "DockerLogsVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct DockerLogsNs {
+    #[arguments(id: $id, tail: $tail)]
+    pub logs: DockerContainerLogsRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "DockerContainerLogs", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerContainerLogsRead {
+    pub container_id: PrefixedID, // containerId: PrefixedID!
+    pub lines: Vec<DockerContainerLogLineRead>,
+    pub cursor: Option<DateTime>, // cursor: DateTime (nullable)
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "DockerContainerLogLine", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct DockerContainerLogLineRead {
+    pub timestamp: DateTime, // timestamp: DateTime!
+    pub message: String,
+}
+
+// from orig_disks
+// ── new enum (add near the other gql_enum! calls) ────────────────────────────
+
+// ── vms ───────────────────────────────────────────────────────────────────────
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct VmsReadQuery {
+    pub vms: VmsRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Vms", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct VmsRead {
+    pub domains: Option<Vec<VmDomainRead>>, // SDL [VmDomain!] (list nullable)
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "VmDomain", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct VmDomainRead {
+    pub id: PrefixedID,
+    pub name: Option<String>, // SDL name: String (nullable)
+    pub state: VmState,       // SDL state: VmState!
+}
+
+// from orig_server
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct ServerReadQuery {
+    pub server: Option<ServerRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Server")]
+#[serde(rename_all = "camelCase")]
+pub struct ServerRead {
+    pub id: PrefixedID,
+    pub name: String,
+    pub comment: Option<String>,
+    pub status: ServerStatus,
+    pub wanip: String,
+    pub lanip: String,
+    pub localurl: String,
+    pub remoteurl: String,
+    pub guid: String,
+}
+
+// from orig_server
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct InfoReadQuery {
+    pub info: InfoRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Info")]
+#[serde(rename_all = "camelCase")]
+pub struct InfoRead {
+    pub time: DateTime,
+    pub os: InfoOsRead,
+    pub cpu: InfoCpuRead,
+    pub memory: InfoMemoryRead,
+    pub versions: InfoVersionsRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "InfoOs")]
+#[serde(rename_all = "camelCase")]
+pub struct InfoOsRead {
+    pub platform: Option<String>,
+    pub distro: Option<String>,
+    pub release: Option<String>,
+    pub kernel: Option<String>,
+    pub arch: Option<String>,
+    pub hostname: Option<String>,
+    pub fqdn: Option<String>,
+    pub uptime: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "InfoCpu")]
+#[serde(rename_all = "camelCase")]
+pub struct InfoCpuRead {
+    pub brand: Option<String>,
+    pub manufacturer: Option<String>,
+    pub cores: Option<i32>,
+    pub threads: Option<i32>,
+    pub speed: Option<f64>,
+    pub speedmax: Option<f64>,
+    pub socket: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "InfoMemory")]
+#[serde(rename_all = "camelCase")]
+pub struct InfoMemoryRead {
+    pub layout: Vec<MemoryLayoutRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "MemoryLayout", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MemoryLayoutRead {
+    pub size: BigInt,
+    #[cynic(rename = "type")]
+    pub r#type: Option<String>,
+    pub clock_speed: Option<i32>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "InfoVersions")]
+#[serde(rename_all = "camelCase")]
+pub struct InfoVersionsRead {
+    pub core: CoreVersionsRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "CoreVersions")]
+#[serde(rename_all = "camelCase")]
+pub struct CoreVersionsRead {
+    pub unraid: Option<String>,
+    pub kernel: Option<String>,
+}
+
+// from orig_server
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct VarsReadQuery {
+    pub vars: VarsRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Vars", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct VarsRead {
+    pub version: Option<String>,
+    pub name: Option<String>,
+    pub time_zone: Option<String>,
+    pub comment: Option<String>,
+    pub sys_model: Option<String>,
+    pub use_ssl: Option<bool>,
+    pub port: Option<i32>,
+    pub portssl: Option<i32>,
+    pub use_ssh: Option<bool>,
+    pub portssh: Option<i32>,
+    pub use_telnet: Option<bool>,
+    pub porttelnet: Option<i32>,
+    pub start_array: Option<bool>,
+    pub spindown_delay: Option<String>,
+    pub share_smb_enabled: Option<bool>,
+    pub share_nfs_enabled: Option<bool>,
+    pub share_afp_enabled: Option<bool>,
+    pub config_valid: Option<bool>,
+    pub config_error: Option<ConfigErrorState>,
+    pub reg_state: Option<RegistrationState>,
+    pub reg_to: Option<String>,
+    pub device_count: Option<i32>,
+    pub flash_guid: Option<String>,
+    pub flash_product: Option<String>,
+    pub flash_vendor: Option<String>,
+    pub sb_name: Option<String>,
+    pub sb_version: Option<String>,
+    pub sb_updated: Option<String>,
+    pub sb_state: Option<String>,
+}
+
+// from orig_server
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct RegistrationReadQuery {
+    pub registration: Option<RegistrationRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Registration", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct RegistrationRead {
+    pub id: PrefixedID,
+    #[cynic(rename = "type")]
+    pub r#type: Option<RegistrationType>,
+    pub state: Option<RegistrationState>,
+    pub expiration: Option<String>,
+    pub update_expiration: Option<String>,
+}
+
+// from orig_server
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteAccessReadQuery {
+    pub remote_access: RemoteAccessRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "RemoteAccess", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct RemoteAccessRead {
+    pub access_type: WanAccessType,
+    pub forward_type: Option<WanForwardType>,
+    pub port: Option<i32>,
+}
+
+// from orig_server
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct ConnectReadQuery {
+    pub connect: ConnectRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Connect", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ConnectRead {
+    pub id: PrefixedID,
+    pub dynamic_remote_access: DynamicRemoteAccessStatusRead,
+    pub settings: ConnectSettingsRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "DynamicRemoteAccessStatus", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct DynamicRemoteAccessStatusRead {
+    pub enabled_type: DynamicRemoteAccessType,
+    pub running_type: DynamicRemoteAccessType,
+    pub error: Option<String>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "ConnectSettings")]
+#[serde(rename_all = "camelCase")]
+pub struct ConnectSettingsRead {
+    pub values: ConnectSettingsValuesRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "ConnectSettingsValues", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ConnectSettingsValuesRead {
+    pub access_type: WanAccessType,
+    pub forward_type: Option<WanForwardType>,
+    pub port: Option<i32>,
+}
+
+// from orig_server
+// vars.configError — SDL enum ConfigErrorState
+
+// vars.regState + registration.state — SDL enum RegistrationState
+
+// remoteAccess.accessType + connect…values.accessType — SDL enum WAN_ACCESS_TYPE
+
+// remoteAccess.forwardType + connect…values.forwardType — SDL enum WAN_FORWARD_TYPE
+
+// connect.dynamicRemoteAccess.{enabled,running}Type — SDL enum DynamicRemoteAccessType
+
+// registration.type — SDL type name is `registrationType` (lowercase),
+// so the macro can't be used; hand-write with a graphql_type override.
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cynic(graphql_type = "registrationType")]
+#[allow(clippy::enum_variant_names)]
+pub enum RegistrationType {
+    Basic,     // BASIC
+    Plus,      // PLUS
+    Pro,       // PRO
+    Starter,   // STARTER
+    Unleashed, // UNLEASHED
+    Lifetime,  // LIFETIME
+    Invalid,   // INVALID
+    Trial,     // TRIAL
+}
+
+// from orig_shares
+// URL_TYPE — SDL SCREAMING values; round-trip to identical JSON strings
+// (e.g. "LAN", "WIREGUARD"). The `network` read selects accessUrls[].type.
+
+// from orig_shares
+/// `URL_TYPE` SDL enum — values are SCREAMING_SNAKE, so the cynic derive needs the
+/// explicit `graphql_type` and the variant names already match the SDL spelling.
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cynic(graphql_type = "URL_TYPE")]
+#[allow(clippy::enum_variant_names)]
+pub enum UrlType {
+    #[cynic(rename = "LAN")]
+    Lan,
+    #[cynic(rename = "WIREGUARD")]
+    Wireguard,
+    #[cynic(rename = "WAN")]
+    Wan,
+    #[cynic(rename = "MDNS")]
+    Mdns,
+    #[cynic(rename = "OTHER")]
+    Other,
+    #[cynic(rename = "DEFAULT")]
+    Default,
+}
+
+// from orig_shares
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct SharesQuery {
+    pub shares: Vec<ShareRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Share", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ShareRead {
+    pub id: PrefixedID,
+    pub name: Option<String>,
+    pub free: Option<BigInt>,
+    pub used: Option<BigInt>,
+    pub size: Option<BigInt>,
+    pub cache: Option<bool>,
+    pub comment: Option<String>,
+    pub allocator: Option<String>,
+    pub luks_status: Option<String>,
+}
+
+// from orig_shares
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct NotificationsQuery {
+    pub notifications: NotificationsRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Notifications", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct NotificationsRead {
+    pub overview: NotificationOverviewRead,
+    pub warnings_and_alerts: Vec<NotificationRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "NotificationOverview", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct NotificationOverviewRead {
+    pub unread: NotificationCountsRead,
+    pub archive: NotificationCountsRead,
+}
+
+// field order matches the hand query: warning alert info total
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "NotificationCounts")]
+pub struct NotificationCountsRead {
+    pub warning: i32,
+    pub alert: i32,
+    pub info: i32,
+    pub total: i32,
+}
+
+// Read-side selection of Notification: NO formattedTimestamp/link/type-after-importance
+// reorder — matches `id title subject description importance type timestamp`.
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Notification", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct NotificationRead {
+    pub id: PrefixedID,
+    pub title: String,
+    pub subject: String,
+    pub description: String,
+    pub importance: NotificationImportance,
+    #[cynic(rename = "type")]
+    pub r#type: NotificationType,
+    pub timestamp: Option<String>,
+}
+
+// from orig_shares
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct LogFilesQuery {
+    pub log_files: Vec<LogFileRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "LogFile", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct LogFileRead {
+    pub name: String,
+    pub path: String,
+    pub size: i32, // Int! — a JSON number, not a BigInt string
+    pub modified_at: DateTime,
+}
+
+// from orig_shares
+#[derive(cynic::QueryVariables)]
+pub struct LogFileVars {
+    pub path: String,
+    pub lines: Option<i32>,
+    pub start_line: Option<i32>, // serialized as $startLine via #[arguments] below
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(
+    graphql_type = "Query",
+    variables = "LogFileVars",
+    rename_all = "camelCase"
+)]
+#[serde(rename_all = "camelCase")]
+pub struct LogFileQuery {
+    #[arguments(path: $path, lines: $lines, startLine: $start_line)]
+    pub log_file: LogFileContentRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "LogFileContent", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct LogFileContentRead {
+    pub path: String,
+    pub content: String,
+    pub total_lines: i32,
+    pub start_line: Option<i32>, // SDL: startLine: Int (nullable)
+}
+
+// from orig_shares
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct ServicesQuery {
+    pub services: Vec<ServiceRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Service", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ServiceRead {
+    pub id: PrefixedID,
+    pub name: Option<String>,
+    pub online: Option<bool>,
+    pub version: Option<String>,
+    pub uptime: Option<UptimeRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Uptime")]
+#[serde(rename_all = "camelCase")]
+pub struct UptimeRead {
+    pub timestamp: Option<String>,
+}
+
+// from orig_shares
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkQuery {
+    pub network: NetworkRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Network", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct NetworkRead {
+    pub id: PrefixedID,
+    pub access_urls: Option<Vec<AccessUrlRead>>, // SDL: [AccessUrl!] (nullable list)
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "AccessUrl", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct AccessUrlRead {
+    #[cynic(rename = "type")]
+    pub r#type: UrlType, // URL_TYPE! enum; serializes to "LAN"/"WIREGUARD"/…
+    pub name: Option<String>,
+    pub ipv4: Option<Url>,
+    pub ipv6: Option<Url>,
+}
+
+// from orig_shares
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query")]
+#[serde(rename_all = "camelCase")]
+pub struct PluginsQuery {
+    pub plugins: Vec<PluginRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Plugin", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct PluginRead {
+    pub name: String,
+    pub version: String,
+    pub has_api_module: Option<bool>,
+    pub has_cli_module: Option<bool>,
+}
+
+// from orig_ups
+// ── ups (read) ────────────────────────────────────────────────────────────────
+// Reuses existing UpsDevice/UpsBattery/UpsPower (defined for ups_device_by_id).
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct UpsQuery {
+    pub ups_devices: Vec<UpsDevice>,
+}
+
+// from orig_ups
+// ── ups_config (read) ─────────────────────────────────────────────────────────
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct UpsConfigQuery {
+    pub ups_configuration: UpsConfigRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "UPSConfiguration", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct UpsConfigRead {
+    pub service: Option<String>,
+    pub ups_cable: Option<String>,
+    pub ups_type: Option<String>,
+    pub device: Option<String>,
+    pub battery_level: Option<i32>,
+    pub minutes: Option<i32>,
+    pub timeout: Option<i32>,
+    pub kill_ups: Option<String>,
+    pub nis_ip: Option<String>,
+    pub net_server: Option<String>,
+    pub ups_name: Option<String>,
+    pub model_name: Option<String>,
+}
+
+// from orig_ups
+// ── new enum (add near the other gql_enum! calls) ─────────────────────────────
+// NOTE: gql_enum! uses cynic's default SCREAMING_SNAKE_CASE mapping, which maps
+// `CpuPackage` -> `CPU_PACKAGE`, etc. — matching the SDL `enum SensorType` values.
+
+// ── metrics (read) ────────────────────────────────────────────────────────────
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsQuery {
+    pub metrics: MetricsRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Metrics", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsRead {
+    pub cpu: Option<MetricsCpu>,
+    pub memory: Option<MetricsMemory>,
+    pub temperature: Option<MetricsTemperature>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "CpuUtilization", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsCpu {
+    pub percent_total: f64,
+    pub cpus: Vec<MetricsCpuLoad>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "CpuLoad", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsCpuLoad {
+    pub percent_total: f64,
+    pub percent_user: f64,
+    pub percent_system: f64,
+    pub percent_idle: f64,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "MemoryUtilization", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsMemory {
+    pub total: BigInt,
+    pub used: BigInt,
+    pub free: BigInt,
+    pub available: BigInt,
+    pub percent_total: f64,
+    pub swap_total: BigInt,
+    pub swap_used: BigInt,
+    pub swap_free: BigInt,
+    pub percent_swap_total: f64,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "TemperatureMetrics", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsTemperature {
+    pub sensors: Vec<MetricsSensor>,
+    pub summary: MetricsTempSummary,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "TemperatureSensor", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsSensor {
+    pub id: PrefixedID,
+    pub name: String,
+    #[cynic(rename = "type")]
+    pub r#type: SensorType,
+    pub location: Option<String>,
+    pub current: MetricsReading,
+    pub warning: Option<f64>,
+    pub critical: Option<f64>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "TemperatureReading", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsReading {
+    pub value: f64,
+    pub unit: TemperatureUnit,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "TemperatureSummary", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct MetricsTempSummary {
+    pub average: f64,
+    pub warning_count: i32,
+    pub critical_count: i32,
+}
+
+// from orig_ups
+// ── parity_history (read) ─────────────────────────────────────────────────────
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ParityHistoryQuery {
+    pub parity_history: Vec<ParityHistoryRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "ParityCheck", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct ParityHistoryRead {
+    pub date: Option<DateTime>,
+    pub duration: Option<i32>,
+    pub speed: Option<String>,
+    pub status: ParityCheckStatus,
+    pub errors: Option<i32>,
+    pub progress: Option<i32>,
+    pub correcting: Option<bool>,
+    pub paused: Option<bool>,
+    pub running: Option<bool>,
+}
+
+// from orig_ups
+// ── rclone (read) ─────────────────────────────────────────────────────────────
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "Query", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct RcloneQuery {
+    pub rclone: RcloneRead,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "RCloneBackupSettings", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct RcloneRead {
+    pub remotes: Vec<RcloneRemoteRead>,
+    pub drives: Vec<RcloneDriveRead>,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "RCloneRemote", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct RcloneRemoteRead {
+    pub name: String,
+    #[cynic(rename = "type")]
+    pub r#type: String,
+}
+
+#[derive(cynic::QueryFragment, serde::Serialize)]
+#[cynic(graphql_type = "RCloneDrive", rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
+pub struct RcloneDriveRead {
+    pub name: String,
+}
+
 // ── enums (cynic checks them vs the SDL; serde does the JSON round-trip) ──────
 
 macro_rules! gql_enum {
@@ -2465,4 +3285,85 @@ gql_enum!(TemperatureUnit {
     Fahrenheit,
     Kelvin,
     Rankine
+});
+
+// Original-read enums.
+gql_enum!(ContainerPortType { Tcp, Udp });
+gql_enum!(VmState {
+    Nostate,
+    Running,
+    Idle,
+    Paused,
+    Shutdown,
+    Shutoff,
+    Crashed,
+    Pmsuspended
+});
+gql_enum!(ConfigErrorState {
+    UnknownError, // UNKNOWN_ERROR
+    Ineligible,   // INELIGIBLE
+    Invalid,      // INVALID
+    NoKeyServer,  // NO_KEY_SERVER
+    Withdrawn,    // WITHDRAWN
+});
+gql_enum!(RegistrationState {
+    Trial,
+    Basic,
+    Plus,
+    Pro,
+    Starter,
+    Unleashed,
+    Lifetime,
+    Eexpired,
+    Eguid,
+    Eguid1,
+    Etrial,
+    Enokeyfile,
+    Enokeyfile1,
+    Enokeyfile2,
+    Enoflash,
+    Enoflash1,
+    Enoflash2,
+    Enoflash3,
+    Enoflash4,
+    Enoflash5,
+    Enoflash6,
+    Enoflash7,
+    Eblacklisted,
+    Eblacklisted1,
+    Eblacklisted2,
+    Enoconn,
+});
+gql_enum!(DynamicRemoteAccessType {
+    Static,
+    Upnp,
+    Disabled
+});
+
+// SDL type names are SCREAMING (WAN_ACCESS_TYPE / WAN_FORWARD_TYPE / URL_TYPE),
+// which the macro can't set — hand-written with graphql_type.
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cynic(graphql_type = "WAN_ACCESS_TYPE")]
+pub enum WanAccessType {
+    Dynamic,
+    Always,
+    Disabled,
+}
+#[derive(cynic::Enum, Clone, Copy, Debug)]
+#[cynic(graphql_type = "WAN_FORWARD_TYPE")]
+pub enum WanForwardType {
+    Upnp,
+    Static,
+}
+gql_enum!(SensorType {
+    CpuPackage,  // CPU_PACKAGE
+    CpuCore,     // CPU_CORE
+    Motherboard, // MOTHERBOARD
+    Chipset,     // CHIPSET
+    Gpu,         // GPU
+    Disk,        // DISK
+    Nvme,        // NVME
+    Ambient,     // AMBIENT
+    Vrm,         // VRM
+    Custom,      // CUSTOM
 });

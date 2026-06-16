@@ -13,7 +13,7 @@ use crate::config::UnraidConfig;
 /// to this enum to decide how to surface the failure to the MCP caller, instead of
 /// matching on message prose. Each variant carries only a category-level message —
 /// raw upstream bodies / GraphQL `errors` are logged server-side, never embedded
-/// here (see `query_with_vars`), so they cannot leak to the caller or aid schema
+/// here (see `send_graphql`), so they cannot leak to the caller or aid schema
 /// probing.
 #[derive(Debug, Error)]
 pub enum UpstreamError {
@@ -106,17 +106,6 @@ impl UnraidClient {
             url: cfg.api_url.clone(),
             api_key: cfg.api_key.clone(),
         })
-    }
-
-    async fn query(&self, gql: &str) -> Result<Value> {
-        self.query_with_vars(gql, Value::Null).await
-    }
-
-    /// Same as [`query`], but sends GraphQL `variables` alongside the query so
-    /// caller-controlled values never have to be interpolated into the query text.
-    async fn query_with_vars(&self, gql: &str, variables: Value) -> Result<Value> {
-        self.send_graphql(json!({ "query": gql, "variables": variables }))
-            .await
     }
 
     /// POST an already-assembled GraphQL HTTP body (`{query, variables, …}`),
@@ -1053,135 +1042,66 @@ impl UnraidClient {
     // ── queries ───────────────────────────────────────────────────────────────
 
     pub async fn array(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  array {
-    state
-    capacity {
-      kilobytes { free used total }
-      disks { free used total }
-    }
-    parityCheckStatus { status running progress speed errors correcting paused }
-    parities { id name device size status temp numErrors type isSpinning rotational }
-    disks {
-      id name device size status temp numErrors numReads numWrites
-      fsSize fsFree fsUsed type color isSpinning rotational fsType comment
-    }
-    caches {
-      id name device size status temp numErrors
-      fsSize fsFree fsUsed type color isSpinning rotational fsType
-    }
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ArrayQuery::build(()))
+            .await
     }
 
     pub async fn disks(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  disks {
-    id device type name vendor size serialNum
-    interfaceType smartStatus temperature isSpinning
-    partitions { name fsType size }
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::DisksReadQuery::build(()))
+            .await
     }
 
     pub async fn docker(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  docker {
-    containers {
-      id names image state status autoStart autoStartOrder
-      ports { privatePort publicPort type ip }
-      webUiUrl iconUrl isOrphaned isUpdateAvailable
-    }
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::DockerReadQuery::build(()))
+            .await
     }
 
     pub async fn docker_logs(&self, container_id: &str, tail: Option<i64>) -> Result<Value> {
-        let gql = r#"query($id: PrefixedID!, $tail: Int) {
-  docker {
-    logs(id: $id, tail: $tail) {
-      containerId
-      lines { timestamp message }
-      cursor
-    }
-  }
-}"#;
-        self.query_with_vars(
-            gql,
-            json!({ "id": container_id, "tail": tail.unwrap_or(100) }),
-        )
-        .await
+        use crate::gql_typed::{DockerLogsReadQuery, DockerLogsVars, PrefixedID};
+        use cynic::QueryBuilder;
+        let vars = DockerLogsVars {
+            id: PrefixedID(container_id.to_string()),
+            tail: Some(tail.unwrap_or(100) as i32),
+        };
+        self.run_typed(DockerLogsReadQuery::build(vars)).await
     }
 
     pub async fn vms(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  vms {
-    domains { id name state }
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::VmsReadQuery::build(()))
+            .await
     }
 
     pub async fn server(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  server { id name comment status wanip lanip localurl remoteurl guid }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ServerReadQuery::build(()))
+            .await
     }
 
     pub async fn info(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  info {
-    time
-    os { platform distro release kernel arch hostname fqdn uptime }
-    cpu { brand manufacturer cores threads speed speedmax socket }
-    memory { layout { size type clockSpeed } }
-    versions { core { unraid kernel } }
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::InfoReadQuery::build(()))
+            .await
     }
 
     pub async fn shares(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  shares {
-    id name free used size cache comment allocator luksStatus
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::SharesQuery::build(()))
+            .await
     }
 
     pub async fn notifications(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  notifications {
-    overview { unread { warning alert info total } archive { warning alert info total } }
-    warningsAndAlerts { id title subject description importance type timestamp }
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::NotificationsQuery::build(()))
+            .await
     }
 
     pub async fn log_files(&self) -> Result<Value> {
-        self.query(r#"query { logFiles { name path size modifiedAt } }"#)
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::LogFilesQuery::build(()))
             .await
     }
 
@@ -1191,132 +1111,90 @@ impl UnraidClient {
         lines: Option<i64>,
         start_line: Option<i64>,
     ) -> Result<Value> {
-        let gql = r#"query($path: String!, $lines: Int, $startLine: Int) {
-  logFile(path: $path, lines: $lines, startLine: $startLine) {
-    path content totalLines startLine
-  }
-}"#;
-        self.query_with_vars(
-            gql,
-            json!({ "path": path, "lines": lines, "startLine": start_line }),
-        )
-        .await
+        use crate::gql_typed::{LogFileQuery, LogFileVars};
+        use cynic::QueryBuilder;
+        let vars = LogFileVars {
+            path: path.to_string(),
+            lines: lines.map(|n| n as i32),
+            start_line: start_line.map(|n| n as i32),
+        };
+        self.run_typed(LogFileQuery::build(vars)).await
     }
 
     pub async fn services(&self) -> Result<Value> {
-        self.query(r#"query { services { id name online version uptime { timestamp } } }"#)
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ServicesQuery::build(()))
             .await
     }
 
     pub async fn network(&self) -> Result<Value> {
-        self.query(r#"query { network { id accessUrls { type name ipv4 ipv6 } } }"#)
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::NetworkQuery::build(()))
             .await
     }
 
     pub async fn ups(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  upsDevices {
-    id name model status
-    battery { chargeLevel estimatedRuntime health }
-    power { inputVoltage outputVoltage loadPercentage }
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::UpsQuery::build(())).await
     }
 
     pub async fn ups_config(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  upsConfiguration {
-    service upsCable upsType device batteryLevel minutes timeout
-    killUps nisIp netServer upsName modelName
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::UpsConfigQuery::build(()))
+            .await
     }
 
     pub async fn metrics(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  metrics {
-    cpu { percentTotal cpus { percentTotal percentUser percentSystem percentIdle } }
-    memory {
-      total used free available percentTotal
-      swapTotal swapUsed swapFree percentSwapTotal
-    }
-    temperature {
-      sensors { id name type location current { value unit } warning critical }
-      summary { average warningCount criticalCount }
-    }
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::MetricsQuery::build(()))
+            .await
     }
 
     pub async fn plugins(&self) -> Result<Value> {
-        self.query(r#"query { plugins { name version hasApiModule hasCliModule } }"#)
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::PluginsQuery::build(()))
             .await
     }
 
     pub async fn parity_history(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  parityHistory { date duration speed status errors progress correcting paused running }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ParityHistoryQuery::build(()))
+            .await
     }
 
     pub async fn vars(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  vars {
-    version name timeZone comment sysModel
-    useSsl port portssl useSsh portssh useTelnet porttelnet
-    startArray spindownDelay shareSmbEnabled shareNfsEnabled shareAfpEnabled
-    configValid configError regState regTo
-    deviceCount flashGuid flashProduct flashVendor
-    sbName sbVersion sbUpdated sbState
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::VarsReadQuery::build(()))
+            .await
     }
 
     pub async fn registration(&self) -> Result<Value> {
-        self.query(r#"query { registration { id type state expiration updateExpiration } }"#)
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::RegistrationReadQuery::build(()))
             .await
     }
 
     pub async fn flash(&self) -> Result<Value> {
-        // guid is non-nullable in schema but can be null at runtime — omit it
-        self.query(r#"query { flash { id vendor product } }"#).await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::FlashQuery::build(()))
+            .await
     }
 
     pub async fn rclone(&self) -> Result<Value> {
-        self.query(r#"query { rclone { remotes { name type } drives { name } } }"#)
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::RcloneQuery::build(()))
             .await
     }
 
     pub async fn remote_access(&self) -> Result<Value> {
-        self.query(r#"query { remoteAccess { accessType forwardType port } }"#)
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::RemoteAccessReadQuery::build(()))
             .await
     }
 
     pub async fn connect(&self) -> Result<Value> {
-        self.query(
-            r#"query {
-  connect {
-    id
-    dynamicRemoteAccess { enabledType runningType error }
-    settings { values { accessType forwardType port } }
-  }
-}"#,
-        )
-        .await
+        use cynic::QueryBuilder;
+        self.run_typed(crate::gql_typed::ConnectReadQuery::build(()))
+            .await
     }
 }
